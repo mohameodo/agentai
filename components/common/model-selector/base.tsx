@@ -151,25 +151,18 @@ export function ModelSelector({
           "flex w-full items-center justify-between px-3 py-2",
           selectedModelId === model.id && "bg-accent"
         )}
-        onClick={async () => {
+        onClick={() => {
           if (isPro) {
             setSelectedProModel(model.id)
             setIsProDialogOpen(true)
             return
           }
 
-          try {
-            // Immediately update UI
-            setSelectedModelId(model.id)
-            
-            // Close dropdowns
-            if (isMobile) {
-              setIsDrawerOpen(false)
-            } else {
-              setIsDropdownOpen(false)
-            }
-          } catch (error) {
-            console.error("Error selecting model:", error)
+          setSelectedModelId(model.id)
+          if (isMobile) {
+            setIsDrawerOpen(false)
+          } else {
+            setIsDropdownOpen(false)
           }
         }}
       >

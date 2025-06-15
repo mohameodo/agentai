@@ -190,8 +190,6 @@ export default function LoginPage() {
               size="lg"
               onClick={handleSignInWithGoogle}
               disabled={isLoading || isEmailLoading}
-              id="google-signin-button" // Added id attribute
-              name="google-signin-button" // Added name attribute
             >
               <svg
                 className="mr-2 size-4"
