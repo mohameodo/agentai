@@ -1,7 +1,38 @@
 {
-  "name": "nexiloop-ai",
-  "version": "0.1.0",
-  "private": true,
+  "name": "nexiloop-ai-template",
+  "version": "1.0.0",
+  "description": "Complete AI chat application template with multiple models, custom agents, code editor, and modern UI - production ready!",
+  "keywords": [
+    "ai-chat",
+    "nextjs",
+    "openai",
+    "claude",
+    "gemini",
+    "supabase",
+    "typescript",
+    "react",
+    "ai-agents",
+    "template",
+    "starter",
+    "chatgpt",
+    "ai-assistant",
+    "modern-ui",
+    "full-stack"
+  ],
+  "homepage": "https://github.com/mohameodo/nexiloop-ai-template",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mohameodo/nexiloop-ai-template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mohameodo/nexiloop-ai-template/issues"
+  },
+  "author": {
+    "name": "Nexiloop AI",
+    "url": "https://github.com/mohameodo"
+  },
+  "license": "MIT",
+  "private": false,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -13,6 +44,7 @@
     "docker:build": "docker build -f docker/Dockerfile -t nexiloop-ai .",
     "docker:run": "docker run -p 3000:3000 nexiloop-ai",
     "docker:dev": "docker-compose -f docker/docker-compose.yml up --build",
+    "db:setup": "echo 'Setting up database...' && echo 'Please run the SQL files in the sql/ directory in your Supabase dashboard'",
     "test": "echo \"No tests specified\" && exit 0",
     "analyze": "ANALYZE=true npm run build"
   },

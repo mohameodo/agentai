@@ -1,0 +1,49 @@
+name: Template Cleanup
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.repository != 'mohameodo/nexiloop-ai-template'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Template Cleanup
+      run: |
+        # Remove template-specific files
+        rm -f .github/workflows/template-cleanup.yml
+        rm -f .github/template-cleanup.yml
+        rm -f TEMPLATE_INFO.md
+        
+        # Rename template README if it exists
+        if [ -f "README.template.md" ]; then
+          mv README.template.md README.md
+        fi
+        
+        # Update package.json with new repo name
+        REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
+        sed -i "s/nexiloop-ai-template/$REPO_NAME/g" package.json
+        
+        # Update README with new repo name
+        sed -i "s/mohameodo\/nexiloop-ai-template/$GITHUB_REPOSITORY/g" README.md
+        sed -i "s/nexiloop-ai-template/$REPO_NAME/g" README.md
+        
+        echo "✅ Template cleanup completed for $GITHUB_REPOSITORY"
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git diff --staged --quiet || git commit -m "🧹 Clean up template files"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

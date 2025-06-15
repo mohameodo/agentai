@@ -1,0 +1,28 @@
+# Template cleanup configuration
+# This file helps users customize the template after creation
+
+name: Template Cleanup
+description: Cleanup script for new repositories created from this template
+
+cleanup:
+  # Files to remove after template creation
+  remove:
+    - .github/template-cleanup.yml
+    - TEMPLATE_INFO.md
+  
+  # Files to rename
+  rename:
+    - from: README.template.md
+      to: README.md
+  
+  # Placeholders to replace
+  placeholders:
+    - placeholder: "nexiloop-ai"
+      description: "Project name"
+      default: "my-ai-app"
+    - placeholder: "Your AI Chat App"
+      description: "Project description"
+      default: "My AI Chat Application"
+    - placeholder: "your-username"
+      description: "GitHub username"
+      default: "username"
