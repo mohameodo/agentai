@@ -34,15 +34,32 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
     user?.preferred_model || MODEL_DEFAULT
   )
 
+  // Sync with user preferred model changes
   useEffect(() => {
-    if (user?.preferred_model) {
+    if (user?.preferred_model && user.preferred_model !== selectedModelId) {
+      console.log("Syncing model selection with user preference:", user.preferred_model)
       setSelectedModelId(user.preferred_model)
     }
-  }, [user?.preferred_model])
+  }, [user?.preferred_model, selectedModelId])
 
   const handleModelSelection = async (value: string) => {
-    setSelectedModelId(value)
-    await updateUser({ preferred_model: value })
+    try {
+      setSelectedModelId(value)
+      
+      // Only update user preference if user is logged in
+      if (user?.id) {
+        const success = await updateUser({ preferred_model: value })
+        if (!success) {
+          console.error("Failed to save model preference")
+          // Revert the local state if save failed
+          setSelectedModelId(user.preferred_model || MODEL_DEFAULT)
+        }
+      }
+    } catch (error) {
+      console.error("Error updating model selection:", error)
+      // Revert on error
+      setSelectedModelId(user?.preferred_model || MODEL_DEFAULT)
+    }
   }
 
   const isLoggedIn = !!user
