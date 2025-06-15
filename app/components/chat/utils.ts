@@ -28,7 +28,8 @@ export const getFavicon = (url: string | null) => {
     }
 
     const domain = urlObj.hostname
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+    // Use a local icon or return null to avoid CSP issues
+    return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`
   } catch {
     // No need to log errors for invalid URLs
     return null
