@@ -249,26 +249,6 @@ export default function LoginPage() {
               </span>
             </Button>
           </div>
-          <div className="mt-4">
-            <Button
-              variant="secondary"
-              className="w-full text-base sm:text-base"
-              size="lg"
-              onClick={handleSignInWithGitHub}
-              disabled={isLoading || isEmailLoading}
-            >
-              <img
-                src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-                alt="GitHub logo"
-                width={20}
-                height={20}
-                className="mr-2 size-4"
-              />
-              <span>
-                {isLoading ? "Connecting..." : "Continue with GitHub"}
-              </span>
-            </Button>
-          </div>
         </div>
       </main>
 
