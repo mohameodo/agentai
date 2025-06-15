@@ -42,14 +42,11 @@
    - `http://localhost:3000/auth/callback` (for development)
 
 ### Issue 3: OAuth Provider Not Configured
-**Cause**: GitHub/Google OAuth apps not set up in Supabase
+**Cause**: Google OAuth app not set up in Supabase
 
 **Solution**:
 1. Go to Supabase Dashboard > Authentication > Providers
-2. Enable GitHub provider:
-   - Add your GitHub OAuth App Client ID
-   - Add your GitHub OAuth App Client Secret
-3. Enable Google provider:
+2. Enable Google provider:
    - Add your Google OAuth Client ID
    - Add your Google OAuth Client Secret
 
@@ -80,12 +77,6 @@ console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
 
 ## OAuth Provider Setup
 
-### GitHub OAuth App Setup
-1. Go to GitHub Settings > Developer settings > OAuth Apps
-2. Create a new OAuth App with:
-   - Homepage URL: `https://ai.nexiloop.com`
-   - Authorization callback URL: `https://xzcgbnsoindhudaubqfs.supabase.co/auth/v1/callback`
-
 ### Google OAuth Setup  
 1. Go to Google Cloud Console
 2. Create OAuth 2.0 credentials with:
@@ -94,9 +85,8 @@ console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
 
 ## Next Steps After This Fix
 
-1. **Test the enhanced login flow** - Try logging in and check console logs
-2. **Visit `/auth/debug`** - Use the debug page to verify your setup
-3. **Check Supabase dashboard** - Ensure all OAuth providers are properly configured
-4. **Verify redirect URLs** - Make sure they match between your app and OAuth providers
+1. **Test the enhanced login flow** - Try logging in with Google and check console logs
+2. **Visit `/auth/debug`** - Use the debug page to verify your setup  
+4. **Verify redirect URLs** - Make sure they match between your app and Google OAuth provider
 
-The login should now work much better with improved error handling and debugging capabilities!
+The login should now work much better with Google OAuth only and improved error handling!

@@ -26,7 +26,7 @@ export default function AuthDebugPage() {
     checkConfig()
   }, [])
 
-  const testAuth = async (provider: 'github' | 'google') => {
+  const testAuth = async () => {
     try {
       const supabase = createClient()
       if (!supabase) {
@@ -34,10 +34,10 @@ export default function AuthDebugPage() {
         return
       }
 
-      console.log(`Testing ${provider} auth...`)
+      console.log("Testing Google auth...")
       
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
@@ -74,11 +74,8 @@ export default function AuthDebugPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Test Authentication</h2>
           <div className="flex space-x-4">
-            <Button onClick={() => testAuth('github')} variant="outline">
-              Test GitHub Auth
-            </Button>
-            <Button onClick={() => testAuth('google')} variant="outline">
-              Test Google Auth  
+            <Button onClick={testAuth} variant="outline">
+              Test Google Auth
             </Button>
           </div>
         </div>
@@ -88,7 +85,7 @@ export default function AuthDebugPage() {
           <ul className="text-sm text-yellow-700 space-y-1">
             <li>• Check that NEXT_PUBLIC_SUPABASE_URL is set</li>
             <li>• Check that NEXT_PUBLIC_SUPABASE_ANON_KEY is set</li>
-            <li>• Verify OAuth providers are configured in Supabase dashboard</li>
+            <li>• Verify Google OAuth provider is configured in Supabase dashboard</li>
             <li>• Ensure redirect URLs match in Supabase settings</li>
             <li>• Check browser console for detailed error messages</li>
           </ul>

@@ -157,58 +157,7 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
   }
 }
 
-/**
- * Signs in user with GitHub OAuth via Supabase
- */
-export async function signInWithGitHub(supabase: SupabaseClient) {
-  try {
-    console.log("signInWithGitHub: Starting GitHub OAuth flow")
-    
-    const isDev = process.env.NODE_ENV === "development"
-    console.log("signInWithGitHub: Environment is development:", isDev)
-
-    // Get base URL dynamically (will work in both browser and server environments)
-    const baseUrl = isDev
-      ? "http://localhost:3000"
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_VERCEL_URL
-          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-          : APP_DOMAIN
-
-    console.log("signInWithGitHub: Base URL:", baseUrl)
-    const redirectUrl = `${baseUrl}/auth/callback`
-    console.log("signInWithGitHub: Redirect URL:", redirectUrl)
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: redirectUrl,
-        queryParams: {
-          scope: "user:email",
-        },
-      },
-    })
-
-    console.log("signInWithGitHub: Supabase response data:", data)
-    console.log("signInWithGitHub: Supabase response error:", error)
-
-    if (error) {
-      console.error("signInWithGitHub: OAuth error:", error)
-      throw error
-    }
-
-    if (!data?.url) {
-      throw new Error("No OAuth URL returned from Supabase")
-    }
-
-    // Return the provider URL
-    return data
-  } catch (err) {
-    console.error("signInWithGitHub: Error signing in with GitHub:", err)
-    throw err
-  }
-}
+// Removed signInWithGitHub function
 
 export const getOrCreateGuestUserId = async (
   user: UserProfile | null
