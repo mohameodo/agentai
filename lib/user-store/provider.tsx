@@ -13,7 +13,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 type UserContextType = {
   user: UserProfile | null
   isLoading: boolean
-  updateUser: (updates: Partial<UserProfile>) => Promise<void>
+  updateUser: (updates: Partial<UserProfile>) => Promise<boolean>
   refreshUser: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -42,8 +42,8 @@ export function UserProvider({
     }
   }
 
-  const updateUser = async (updates: Partial<UserProfile>) => {
-    if (!user?.id) return
+  const updateUser = async (updates: Partial<UserProfile>): Promise<boolean> => {
+    if (!user?.id) return false
 
     setIsLoading(true)
     try {
@@ -51,6 +51,10 @@ export function UserProvider({
       if (success) {
         setUser((prev) => (prev ? { ...prev, ...updates } : null))
       }
+      return success
+    } catch (error) {
+      console.error("Error updating user profile:", error)
+      return false
     } finally {
       setIsLoading(false)
     }

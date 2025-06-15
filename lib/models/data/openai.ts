@@ -297,6 +297,30 @@ const openaiModels: ModelConfig[] = [
     apiDocs: "https://platform.openai.com/docs/api-reference",
     apiSdk: (apiKey?: string) => openproviders("gpt-4o-mini", undefined, apiKey),
   },
+  {
+    id: "o3",
+    name: "o3",
+    provider: "OpenAI",
+    providerId: "openai",
+    modelFamily: "o3",
+    description:
+      "OpenAI's most advanced reasoning model with exceptional performance on complex tasks. Limited availability due to high compute costs.",
+    tags: ["reasoning", "premium", "limited", "advanced"],
+    contextWindow: 200000,
+    inputCost: 60.0,
+    outputCost: 240.0,
+    priceUnit: "per 1M tokens",
+    vision: true,
+    tools: true,
+    audio: false,
+    reasoning: true,
+    openSource: false,
+    speed: "Slow",
+    website: "https://openai.com",
+    apiDocs: "https://platform.openai.com/docs/api-reference",
+    releasedAt: "2024-12-20",
+    apiSdk: (apiKey?: string) => openproviders("o3", undefined, apiKey),
+  },
 ]
 
 export { openaiModels }

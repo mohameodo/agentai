@@ -10,6 +10,7 @@ const MODEL_PROVIDER_MAP: Record<string, Provider> = {
   "o1-preview-2024-09-12": "openai",
   "o3-mini": "openai",
   "o3-mini-2025-01-31": "openai",
+  "o3": "openai",
   "gpt-4.1": "openai",
   "gpt-4.1-2025-04-14": "openai",
   "gpt-4.1-mini": "openai",

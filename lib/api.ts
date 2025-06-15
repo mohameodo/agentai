@@ -108,28 +108,20 @@ export async function updateChatModel(chatId: string, model: string) {
  */
 export async function signInWithGoogle(supabase: SupabaseClient) {
   try {
-    console.log("signInWithGoogle: Starting Google OAuth flow")
-    
-    const isDev = process.env.NODE_ENV === "development"
-    console.log("signInWithGoogle: Environment is development:", isDev)
-
     // Get base URL dynamically (will work in both browser and server environments)
-    const baseUrl = isDev
-      ? "http://localhost:3000"
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_VERCEL_URL
-          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-          : APP_DOMAIN
-
-    console.log("signInWithGoogle: Base URL:", baseUrl)
-    const redirectUrl = `${baseUrl}/auth/callback`
-    console.log("signInWithGoogle: Redirect URL:", redirectUrl)
+    // For production, ensure NEXT_PUBLIC_APP_DOMAIN is set in Vercel.
+    // For local development, it defaults to http://localhost:3000.
+    // For other server environments, ensure APP_DOMAIN is set.
+    const baseUrl = 
+      process.env.NEXT_PUBLIC_APP_DOMAIN || 
+      (typeof window !== "undefined" 
+        ? window.location.origin 
+        : process.env.APP_DOMAIN || "http://localhost:3000");
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: redirectUrl,
+        redirectTo: `${baseUrl}/auth/callback`,
         queryParams: {
           access_type: "offline",
           prompt: "consent",
@@ -137,27 +129,17 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
       },
     })
 
-    console.log("signInWithGoogle: Supabase response data:", data)
-    console.log("signInWithGoogle: Supabase response error:", error)
-
     if (error) {
-      console.error("signInWithGoogle: OAuth error:", error)
       throw error
-    }
-
-    if (!data?.url) {
-      throw new Error("No OAuth URL returned from Supabase")
     }
 
     // Return the provider URL
     return data
   } catch (err) {
-    console.error("signInWithGoogle: Error signing in with Google:", err)
+    console.error("Error signing in with Google:", err)
     throw err
   }
 }
-
-// Removed signInWithGitHub function
 
 export const getOrCreateGuestUserId = async (
   user: UserProfile | null
@@ -191,7 +173,7 @@ export const getOrCreateGuestUserId = async (
           "Failed to ensure guest user profile exists for existing anonymous auth user:",
           error
         )
-        return null
+        // Do not return null here, proceed to return anonUserId as the user exists in auth
       }
     }
     return anonUserId
@@ -212,8 +194,16 @@ export const getOrCreateGuestUserId = async (
     }
 
     const guestIdFromAuth = anonAuthData.user.id
-    await createGuestUser(guestIdFromAuth)
-    localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
+    try {
+      await createGuestUser(guestIdFromAuth)
+      localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
+    } catch (createError) {
+        console.error(
+          "Failed to create guest user profile for new anonymous auth user:",
+          createError
+        )
+        // If profile creation fails, still return the guestIdFromAuth as the auth user was created
+    }
     return guestIdFromAuth
   } catch (error) {
     console.error(
