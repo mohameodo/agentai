@@ -108,7 +108,10 @@ export async function updateChatModel(chatId: string, model: string) {
  */
 export async function signInWithGoogle(supabase: SupabaseClient) {
   try {
+    console.log("signInWithGoogle: Starting Google OAuth flow")
+    
     const isDev = process.env.NODE_ENV === "development"
+    console.log("signInWithGoogle: Environment is development:", isDev)
 
     // Get base URL dynamically (will work in both browser and server environments)
     const baseUrl = isDev
@@ -119,10 +122,14 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
           ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
           : APP_DOMAIN
 
+    console.log("signInWithGoogle: Base URL:", baseUrl)
+    const redirectUrl = `${baseUrl}/auth/callback`
+    console.log("signInWithGoogle: Redirect URL:", redirectUrl)
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${baseUrl}/auth/callback`,
+        redirectTo: redirectUrl,
         queryParams: {
           access_type: "offline",
           prompt: "consent",
@@ -130,14 +137,22 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
       },
     })
 
+    console.log("signInWithGoogle: Supabase response data:", data)
+    console.log("signInWithGoogle: Supabase response error:", error)
+
     if (error) {
+      console.error("signInWithGoogle: OAuth error:", error)
       throw error
+    }
+
+    if (!data?.url) {
+      throw new Error("No OAuth URL returned from Supabase")
     }
 
     // Return the provider URL
     return data
   } catch (err) {
-    console.error("Error signing in with Google:", err)
+    console.error("signInWithGoogle: Error signing in with Google:", err)
     throw err
   }
 }
@@ -147,7 +162,10 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
  */
 export async function signInWithGitHub(supabase: SupabaseClient) {
   try {
+    console.log("signInWithGitHub: Starting GitHub OAuth flow")
+    
     const isDev = process.env.NODE_ENV === "development"
+    console.log("signInWithGitHub: Environment is development:", isDev)
 
     // Get base URL dynamically (will work in both browser and server environments)
     const baseUrl = isDev
@@ -158,24 +176,36 @@ export async function signInWithGitHub(supabase: SupabaseClient) {
           ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
           : APP_DOMAIN
 
+    console.log("signInWithGitHub: Base URL:", baseUrl)
+    const redirectUrl = `${baseUrl}/auth/callback`
+    console.log("signInWithGitHub: Redirect URL:", redirectUrl)
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${baseUrl}/auth/callback`,
+        redirectTo: redirectUrl,
         queryParams: {
           scope: "user:email",
         },
       },
     })
 
+    console.log("signInWithGitHub: Supabase response data:", data)
+    console.log("signInWithGitHub: Supabase response error:", error)
+
     if (error) {
+      console.error("signInWithGitHub: OAuth error:", error)
       throw error
+    }
+
+    if (!data?.url) {
+      throw new Error("No OAuth URL returned from Supabase")
     }
 
     // Return the provider URL
     return data
   } catch (err) {
-    console.error("Error signing in with GitHub:", err)
+    console.error("signInWithGitHub: Error signing in with GitHub:", err)
     throw err
   }
 }

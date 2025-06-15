@@ -22,25 +22,29 @@ export default function LoginPage() {
     const supabase = createClient()
 
     if (!supabase) {
-      throw new Error("Supabase is not configured")
+      setError("Authentication is not configured properly. Please contact support.")
+      return
     }
 
     try {
       setIsLoading(true)
       setError(null)
 
+      console.log("Starting Google sign-in...")
       const data = await signInWithGoogle(supabase)
+      console.log("Google sign-in response:", data)
 
       // Redirect to the provider URL
       if (data?.url) {
+        console.log("Redirecting to:", data.url)
         window.location.href = data.url
+      } else {
+        throw new Error("No redirect URL received from authentication provider")
       }
     } catch (err: unknown) {
       console.error("Error signing in with Google:", err)
-      setError(
-        (err as Error).message ||
-          "An unexpected error occurred. Please try again."
-      )
+      const errorMessage = (err as Error).message || "An unexpected error occurred. Please try again."
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -50,25 +54,29 @@ export default function LoginPage() {
     const supabase = createClient()
 
     if (!supabase) {
-      throw new Error("Supabase is not configured")
+      setError("Authentication is not configured properly. Please contact support.")
+      return
     }
 
     try {
       setIsLoading(true)
       setError(null)
 
+      console.log("Starting GitHub sign-in...")
       const data = await signInWithGitHub(supabase)
+      console.log("GitHub sign-in response:", data)
 
       // Redirect to the provider URL
       if (data?.url) {
+        console.log("Redirecting to:", data.url)
         window.location.href = data.url
+      } else {
+        throw new Error("No redirect URL received from authentication provider")
       }
     } catch (err: unknown) {
       console.error("Error signing in with GitHub:", err)
-      setError(
-        (err as Error).message ||
-          "An unexpected error occurred. Please try again."
-      )
+      const errorMessage = (err as Error).message || "An unexpected error occurred. Please try again."
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
