@@ -1,5 +1,5 @@
 {
-  "name": "nexiloop",
+  "name": "nexiloop-ai",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next",
+    "docker:build": "docker build -f docker/Dockerfile -t nexiloop-ai .",
+    "docker:run": "docker run -p 3000:3000 nexiloop-ai",
+    "docker:dev": "docker-compose -f docker/docker-compose.yml up --build",
+    "test": "echo \"No tests specified\" && exit 0",
+    "analyze": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.10",

@@ -1,12 +1,12 @@
-# 🚀 Nexiloop AI - Your New AI Best Friend
+# Nexiloop AI - Your New AI Best Friend 🚀
 
-Yo! Welcome to the most fire AI chat app that's about to change your whole workflow! This hits different, no cap 🧢
+Yo! Welcome to the most fire AI chat app that's about to change your whole workflow! This hits different, no cap.
 
-## ✨ What's This About?
+## What's This About?
 
 This isn't just another boring AI chat app. This is **Nexiloop AI** - where conversations get smart, coding gets easier, and productivity goes absolutely brrrr! 
 
-### 🔥 What Makes It Special?
+### What Makes It Special?
 
 - **Multiple AI Models** - GPT, Claude, Gemini, and more all in one place (it's giving variety!)
 - **Custom AI Agents** - Create your own AI assistants for specific tasks (main character energy)
@@ -16,7 +16,7 @@ This isn't just another boring AI chat app. This is **Nexiloop AI** - where conv
 - **Multi-auth** - Google, GitHub, or email - your choice (we don't judge)
 - **Actually Free** - No sketchy paywalls for basic features (we're not evil)
 
-## 🎮 Quick Start (Get Running in 5 Minutes)
+## Quick Start (Get Running in 5 Minutes)
 
 ### 1. Clone This Beast
 ```bash
@@ -50,7 +50,7 @@ npm run dev
 
 Visit `http://localhost:3000` and boom! You're in business 💪
 
-## 🎯 What You Need
+## What You Need
 
 ### Required (The Essentials)
 - **Supabase Account** - For database and auth (free tier is perfect)
@@ -77,7 +77,7 @@ nexiloop-ai/
 
 ## 🛠️ Key Features Breakdown
 
-### 🤖 AI Models Galore
+### AI Models Galore
 Switch between different AI models on the fly:
 - **OpenAI** (GPT-4, GPT-4o, etc.)
 - **Anthropic** (Claude 3.5 Sonnet)
@@ -95,7 +95,7 @@ Create specialized AI assistants:
 ### 🧠 Think Mode
 Watch AI models reason through complex problems step by step. It's like having X-ray vision into AI thinking!
 
-### 💻 CodeHat
+### CodeHat
 Built-in code editor with:
 - File management
 - Terminal access
@@ -106,7 +106,7 @@ Built-in code editor with:
 
 We've got docs that actually make sense (rare W):
 
-### 🚀 Getting Started
+### Getting Started
 - **[Installation Guide](docs/INSTALL.md)** - Get this thing running (step by step, no stress)
 - **[Quick Setup](docs/QUICK_START.md)** - For when you just want to vibe immediately
 - **[Environment Setup](docs/ENV_SETUP.md)** - All the secrets and keys you need
@@ -120,7 +120,7 @@ We've got docs that actually make sense (rare W):
 - **[API Documentation](docs/API.md)** - For the tech nerds (respectfully)
 - **[Database Schema](docs/DATABASE.md)** - What's under the hood
 
-### 🎨 Frontend & UI
+### Frontend & UI
 - **[Component Guide](docs/COMPONENTS.md)** - How to build beautiful stuff
 - **[Theming Guide](docs/THEMES.md)** - Customize your vibe
 - **[Icon System](docs/ICONS.md)** - Pretty icons for everything
@@ -136,7 +136,7 @@ We've got docs that actually make sense (rare W):
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - When things go wrong
 - **[Contributing](docs/CONTRIBUTING.md)** - Join the squad
 
-## 🚀 Deployment
+## Deployment
 
 Deploy anywhere you want:
 - **Vercel** (recommended)
@@ -197,37 +197,37 @@ Shoutout to the amazing open source community and all the contributors who make 
 
 ---
 
-### 🌟 Coming Soon (Get Hyped!)
+### Coming Soon (Get Hyped!)
 
 We're cooking up some absolutely fire features that are gonna change the game:
 
-#### 🎨 **Custom Themes & UI**
+#### **Custom Themes & UI**
 - **Dark mode, light mode, neon mode** - whatever vibe you're feeling
 - **Personalized dashboard layouts** - make it yours
 - **Theme marketplace** - share your creations with the world
 
-#### ☁️ **Cloud Integration (Next Level Stuff)**
+#### **Cloud Integration (Next Level Stuff)**
 - **Full cloud deployment** - deploy anywhere, anytime
 - **Cloudflare AI integration** - lightning fast responses
 - **Custom API keys** - enterprise level security for your data
 - **Multi region deployment** - global speed that hits different
 
-#### 🔒 **Local First Privacy Mode**
+#### **Local First Privacy Mode**
 - **No database needed** - everything saves locally on your device
 - **Your data never leaves** - perfect for sensitive work
 - **Privacy focused** - for the security conscious users
 
-#### 🔗 **Powerful Integrations (This List is Wild)**
+#### **Powerful Integrations (This List is Wild)**
 - **📧 Gmail & Google Drive** - manage emails and files with AI
 - **📝 Notion** - AI powered note taking and organization  
 - **🎥 YouTube** - analyze videos and create content
 - **💬 Meta Messenger** - AI chatbots for your social life
-- **🎮 Discord** - smart bots for your servers
+- **Discord** - smart bots for your servers
 - **📱 Mobile Apps** - take your AI bestie everywhere
 - **🎵 Voice Chat** - talk to your AI like calling your friend
 - **And way more** - we're connecting everything!
 
-#### 💻 **CodeHat Evolution (Developer Paradise)**
+#### **CodeHat Evolution (Developer Paradise)**
 - **Build complete apps and websites** - not just code snippets
 - **Deploy directly to cloud** - from idea to live app in minutes
 - **AI powered testing** - catch bugs before they happen

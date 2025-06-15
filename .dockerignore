@@ -96,6 +96,11 @@ docker-compose*
 # Documentation
 README.md
 *.md
+docs/
+sql/
+scripts/
+CHANGELOG*
+LICENSE*
 
 # Testing
 coverage
@@ -107,4 +112,4 @@ jest.config.js
 .prettierrc*
 
 # TypeScript
-*.tsbuildinfo 
+*.tsbuildinfo

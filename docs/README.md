@@ -1,12 +1,12 @@
-# nexiloop
+# Nexiloop AI - Documentation
 
 [ai.nexiloop.com](https://ai.nexiloop.com)
 
-**nexiloop** is the open-source interface for AI chat.
+**Nexiloop AI** is the open-source interface for AI chat with agents, custom models, and advanced features.
 
-[![Chat with this repo](https://ai.nexiloop.com/button/github.svg)](https://ai.nexiloop.com/?agent=github/ibelick/nexiloop)
+[![Chat with this repo](https://ai.nexiloop.com/button/github.svg)](https://ai.nexiloop.com/?agent=github/mohameodo/agentai)
 
-![nexiloop screenshot](./public/nl.png)
+![Nexiloop AI screenshot](../public/nl.png)
 
 ## Features
 
@@ -43,8 +43,8 @@
 ### Option 1: With OpenAI (Cloud)
 
 ```bash
-git clone https://github.com/ibelick/nexiloop.git
-cd nexiloop
+git clone https://github.com/mohameodo/agentai.git
+cd agentai
 npm install
 echo "OPENAI_API_KEY=your-key" > .env.local
 npm run dev
@@ -57,24 +57,24 @@ npm run dev
 curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull llama3.2  # or any model you prefer
 
-# Clone and run nexiloop
-git clone https://github.com/ibelick/nexiloop.git
-cd nexiloop
+# Clone and run Nexiloop AI
+git clone https://github.com/mohameodo/agentai.git
+cd agentai
 npm install
 npm run dev
 ```
 
-nexiloop will automatically detect your local Ollama models!
+Nexiloop AI will automatically detect your local Ollama models!
 
 ### Option 3: Docker with Ollama
 
 ```bash
-git clone https://github.com/ibelick/nexiloop.git
-cd nexiloop
-docker-compose -f docker-compose.ollama.yml up
+git clone https://github.com/mohameodo/agentai.git
+cd agentai
+docker-compose -f docker/docker-compose.ollama.yml up
 ```
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ibelick/nexiloop)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mohameodo/agentai)
 
 To unlock features like auth, file uploads, agents, and background removal, see [INSTALL.md](./INSTALL.md).
 
@@ -419,6 +419,21 @@ SUPABASE_SERVICE_ROLE=your_supabase_service_role_key
 - [motion-primitives](https://motion-primitives.com) — animated components
 - [vercel ai sdk](https://vercel.com/blog/introducing-the-vercel-ai-sdk) — model integration, AI features
 - [supabase](https://supabase.com) — auth and storage
+
+## Project Structure
+
+Nexiloop AI is now organized into clear, focused directories:
+
+- **`/app`** - Next.js 13+ app directory with pages and API routes
+- **`/components`** - Reusable React components and UI elements
+- **`/lib`** - Core libraries, utilities, and business logic
+- **`/docs`** - All documentation (README, guides, setup instructions)
+- **`/sql`** - Database schemas, migrations, and setup scripts
+- **`/docker`** - Docker configuration and container setup
+- **`/scripts`** - Shell scripts for testing and automation
+- **`/.github`** - GitHub templates and workflows
+
+Each folder includes its own README with specific setup instructions and usage details.
 
 ## Sponsors
 
