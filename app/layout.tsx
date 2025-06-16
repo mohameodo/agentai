@@ -8,8 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ChatSessionProvider } from "@/lib/chat-store/session/provider"
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
-import { RealtimePreferenceSync } from "@/lib/user-preference-store/realtime-sync"
-import { ModelPreferenceSync } from "@/lib/user-preference-store/model-sync"
+
 import { UserProvider } from "@/lib/user-store/provider"
 import { DataProviders } from "@/app/components/providers/data-providers"
 import type { UserProfile } from "@/app/types/user"
@@ -261,28 +260,24 @@ export default async function RootLayout({
         <PWAInstaller />
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
-          <RealtimePreferenceSync>
-            <ModelPreferenceSync>
-              <ChatSessionProvider>
-                <DataProviders>
-                  <TooltipProvider delayDuration={200} skipDelayDuration={500}>
-                    <ThemeProvider
-                      attribute="class"
-                      defaultTheme="light"
-                      enableSystem
-                      disableTransitionOnChange
-                    >
-                      <ThemeBackground />
-                      <SidebarProvider defaultOpen>
-                        <Toaster position="top-center" />
-                        {children}
-                      </SidebarProvider>
-                    </ThemeProvider>
-                  </TooltipProvider>
-                </DataProviders>
-              </ChatSessionProvider>
-            </ModelPreferenceSync>
-          </RealtimePreferenceSync>
+          <ChatSessionProvider>
+            <DataProviders>
+              <TooltipProvider delayDuration={200} skipDelayDuration={500}>
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme="light"
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  <ThemeBackground />
+                  <SidebarProvider defaultOpen>
+                    <Toaster position="top-center" />
+                    {children}
+                  </SidebarProvider>
+                </ThemeProvider>
+              </TooltipProvider>
+            </DataProviders>
+          </ChatSessionProvider>
         </UserProvider>
       </body>
     </html>

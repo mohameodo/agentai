@@ -3,6 +3,8 @@
 import { AgentProvider } from "@/lib/agent-store/provider"
 import { ChatsProvider } from "@/lib/chat-store/chats/provider"
 import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
+import { RealtimePreferenceSync } from "@/lib/user-preference-store/realtime-sync"
+import { ModelPreferenceSync } from "@/lib/user-preference-store/model-sync"
 import { useUser } from "@/lib/user-store/provider"
 import { ReactNode } from "react"
 
@@ -21,7 +23,11 @@ export function DataProviders({ children }: DataProvidersProps) {
     <ChatsProvider userId={user?.id}>
       <AgentProvider userId={user?.id}>
         <UserPreferencesProvider userId={user?.id}>
-          {children}
+          <RealtimePreferenceSync>
+            <ModelPreferenceSync>
+              {children}
+            </ModelPreferenceSync>
+          </RealtimePreferenceSync>
         </UserPreferencesProvider>
       </AgentProvider>
     </ChatsProvider>
