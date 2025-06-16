@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { getModelInfo } from "@/lib/models"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { cn } from "@/lib/utils"
 import { FileArrowUp, Plus  } from "@phosphor-icons/react"
 import React from "react"
@@ -32,7 +32,7 @@ export function ButtonFileUpload({
   isUserAuthenticated,
   model,
 }: ButtonFileUploadProps) {
-  if (!isSupabaseEnabled) {
+  if (!isFirebaseEnabled) {
     return null
   }
 

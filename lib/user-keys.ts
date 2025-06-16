@@ -1,4 +1,6 @@
-import { createClient } from "./supabase/server"
+import { isFirebaseEnabled } from "./firebase/config"
+import { getFirebaseFirestore } from "./firebase/client"
+import { doc, getDoc } from "firebase/firestore"
 import { decryptKey } from "./encryption"
 import { env } from "./openproviders/env"
 
@@ -6,17 +8,16 @@ export type Provider = "openai" | "mistral" | "google" | "anthropic" | "xai" | "
 
 export async function getUserKey(userId: string, provider: Provider): Promise<string | null> {
   try {
-    const supabase = await createClient()
-    if (!supabase) return null
+    if (!isFirebaseEnabled) return null
 
-    const { data, error } = await supabase
-      .from("user_keys")
-      .select("encrypted_key, iv")
-      .eq("user_id", userId)
-      .eq("provider", provider)
-      .single()
+    const db = getFirebaseFirestore()
+    if (!db) return null
 
-    if (error || !data) return null
+    const userKeyDoc = await getDoc(doc(db, "user_keys", `${userId}_${provider}`))
+    if (!userKeyDoc.exists()) return null
+
+    const data = userKeyDoc.data()
+    if (!data.encrypted_key || !data.iv) return null
 
     return decryptKey(data.encrypted_key, data.iv)
   } catch (error) {

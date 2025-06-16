@@ -1,7 +1,7 @@
 import type { UserProfile } from "@/app/types/user"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
-import { getCurrentUser } from "@/lib/firebase/auth"
-import { getDocument } from "@/lib/firebase/firestore"
+import { getCurrentUser, onAuthStateChange } from "@/lib/firebase/auth"
+import { getDocument, updateDocument, createDocument } from "@/lib/firebase/firestore"
 import { COLLECTIONS } from "@/app/types/firebase.types"
 import type { FirebaseUser } from "@/app/types/firebase.types"
 
@@ -52,4 +52,68 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     special_agent_reset: userProfile?.special_agent_reset?.toDate?.(),
     last_active_at: userProfile?.last_active_at?.toDate?.(),
   }
+}
+
+export async function updateUserProfile(
+  id: string,
+  updates: Partial<UserProfile>
+): Promise<boolean> {
+  if (!isFirebaseEnabled) {
+    return false
+  }
+
+  try {
+    const success = await updateDocument(COLLECTIONS.USERS, id, updates)
+    return success
+  } catch (error) {
+    console.error("Failed to update user:", error)
+    return false
+  }
+}
+
+export async function createUserProfile(user: any): Promise<boolean> {
+  if (!isFirebaseEnabled) {
+    return false
+  }
+
+  try {
+    const userData: Partial<FirebaseUser> = {
+      email: user.email,
+      name: user.displayName,
+      avatar_url: user.photoURL,
+      profile_image: user.photoURL,
+      display_name: user.displayName,
+      anonymous: user.isAnonymous,
+      special_agent_count: 0,
+      premium: false,
+      daily_pro_message_count: 0,
+      preferences: {}
+    }
+
+    const result = await createDocument(COLLECTIONS.USERS, userData, user.uid)
+    return !!result
+  } catch (error) {
+    console.error("Failed to create user profile:", error)
+    return false
+  }
+}
+
+export function subscribeToUserUpdates(
+  userId: string,
+  onUpdate: (newData: Partial<UserProfile>) => void
+) {
+  if (!isFirebaseEnabled) {
+    return () => {}
+  }
+
+  return onAuthStateChange((user) => {
+    if (user && user.uid === userId) {
+      onUpdate({
+        id: user.uid,
+        email: user.email || "",
+        display_name: user.displayName || "",
+        profile_image: user.photoURL || "",
+      })
+    }
+  })
 }

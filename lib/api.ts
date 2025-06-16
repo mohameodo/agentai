@@ -1,13 +1,15 @@
 import { UserProfile } from "@/app/types/user"
 import { APP_DOMAIN, DAILY_SPECIAL_AGENT_LIMIT } from "@/lib/config"
-import { SupabaseClient } from "@supabase/supabase-js"
 import { fetchClient } from "./fetch"
 import {
   API_ROUTE_CREATE_GUEST,
   API_ROUTE_UPDATE_CHAT_AGENT,
   API_ROUTE_UPDATE_CHAT_MODEL,
 } from "./routes"
-import { createClient } from "./supabase/client"
+import { getCurrentUser, signInWithGoogle as firebaseSignInWithGoogle, signInAsGuest } from "./firebase/auth"
+import { getDocument, updateDocument, createDocument } from "./firebase/firestore"
+import { COLLECTIONS } from "@/app/types/firebase.types"
+import type { FirebaseUser } from "@/app/types/firebase.types"
 
 /**
  * Creates a guest user record on the server
@@ -104,40 +106,45 @@ export async function updateChatModel(chatId: string, model: string) {
 }
 
 /**
- * Signs in user with Google OAuth via Supabase
+ * Signs in user with Google OAuth via Firebase
  */
-export async function signInWithGoogle(supabase: SupabaseClient) {
+export async function signInWithGoogle() {
   try {
-    // Get base URL dynamically (will work in both browser and server environments)
-    // For production, ensure NEXT_PUBLIC_APP_DOMAIN is set in Vercel.
-    // For local development, it defaults to http://localhost:3000.
-    // For other server environments, ensure APP_DOMAIN is set.
-    const baseUrl = 
-      process.env.NEXT_PUBLIC_APP_DOMAIN || 
-      (typeof window !== "undefined" 
-        ? window.location.origin 
-        : process.env.APP_DOMAIN || "http://localhost:3000");
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${baseUrl}/auth/callback`,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    })
-
-    if (error) {
-      throw error
+    const user = await firebaseSignInWithGoogle()
+    
+    if (user) {
+      // Create or update user profile in Firestore
+      await createOrUpdateUserProfile(user)
     }
-
-    // Return the provider URL
-    return data
+    
+    return user
   } catch (err) {
     console.error("Error signing in with Google:", err)
     throw err
+  }
+}
+
+/**
+ * Creates or updates user profile in Firestore
+ */
+async function createOrUpdateUserProfile(user: any) {
+  try {
+    const userData: Partial<FirebaseUser> = {
+      email: user.email,
+      name: user.displayName,
+      avatar_url: user.photoURL,
+      profile_image: user.photoURL,
+      display_name: user.displayName,
+      anonymous: user.isAnonymous,
+      special_agent_count: 0,
+      premium: false,
+      daily_pro_message_count: 0,
+      preferences: {}
+    }
+
+    await createDocument(COLLECTIONS.USERS, userData, user.uid)
+  } catch (error) {
+    console.error("Error creating/updating user profile:", error)
   }
 }
 
@@ -146,19 +153,11 @@ export const getOrCreateGuestUserId = async (
 ): Promise<string | null> => {
   if (user?.id) return user.id
 
-  const supabase = createClient()
-
-  if (!supabase) {
-    console.warn("Supabase is not available in this deployment.")
-    return null
-  }
-
-  const existingGuestSessionUser = await supabase.auth.getUser()
-  if (
-    existingGuestSessionUser.data?.user &&
-    existingGuestSessionUser.data.user.is_anonymous
-  ) {
-    const anonUserId = existingGuestSessionUser.data.user.id
+  const currentUser = getCurrentUser()
+  
+  // Check if we already have an anonymous user
+  if (currentUser && currentUser.isAnonymous) {
+    const anonUserId = currentUser.uid
 
     const profileCreationAttempted = localStorage.getItem(
       `guestProfileAttempted_${anonUserId}`
@@ -180,29 +179,23 @@ export const getOrCreateGuestUserId = async (
   }
 
   try {
-    const { data: anonAuthData, error: anonAuthError } =
-      await supabase.auth.signInAnonymously()
+    const guestUser = await signInAsGuest()
 
-    if (anonAuthError) {
-      console.error("Error during anonymous sign-in:", anonAuthError)
-      return null
-    }
-
-    if (!anonAuthData || !anonAuthData.user) {
+    if (!guestUser) {
       console.error("Anonymous sign-in did not return a user.")
       return null
     }
 
-    const guestIdFromAuth = anonAuthData.user.id
+    const guestIdFromAuth = guestUser.uid
     try {
       await createGuestUser(guestIdFromAuth)
       localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
     } catch (createError) {
-        console.error(
-          "Failed to create guest user profile for new anonymous auth user:",
-          createError
-        )
-        // If profile creation fails, still return the guestIdFromAuth as the auth user was created
+      console.error(
+        "Failed to create guest user profile for new anonymous auth user:",
+        createError
+      )
+      // If profile creation fails, still return the guestIdFromAuth as the auth user was created
     }
     return guestIdFromAuth
   } catch (error) {
@@ -222,27 +215,15 @@ export class SpecialAgentLimitError extends Error {
   }
 }
 
-export async function checkSpecialAgentUsage(
-  supabase: SupabaseClient,
-  userId: string
-) {
-  const { data: user, error } = await supabase
-    .from("users")
-    .select("special_agent_count, special_agent_reset, premium")
-    .eq("id", userId)
-    .maybeSingle()
-
-  if (error) {
-    throw new Error("Failed to fetch user data: " + error.message)
-  }
+export async function checkSpecialAgentUsage(userId: string) {
+  const user = await getDocument<FirebaseUser>(COLLECTIONS.USERS, userId)
+  
   if (!user) {
     throw new Error("User not found")
   }
 
   const now = new Date()
-  const lastReset = user.special_agent_reset
-    ? new Date(user.special_agent_reset)
-    : null
+  const lastReset = user.special_agent_reset?.toDate()
   let usageCount = user.special_agent_count || 0
 
   const isNewDay =
@@ -253,18 +234,10 @@ export async function checkSpecialAgentUsage(
 
   if (isNewDay) {
     usageCount = 0
-    const { error: resetError } = await supabase
-      .from("users")
-      .update({
-        special_agent_count: 0,
-        special_agent_reset: now.toISOString(),
-      })
-      .eq("id", userId)
-    if (resetError) {
-      throw new Error(
-        "Failed to reset special agent count: " + resetError.message
-      )
-    }
+    await updateDocument(COLLECTIONS.USERS, userId, {
+      special_agent_count: 0,
+      special_agent_reset: now as any,
+    })
   }
 
   if (usageCount >= DAILY_SPECIAL_AGENT_LIMIT) {
@@ -279,7 +252,6 @@ export async function checkSpecialAgentUsage(
 }
 
 export async function incrementSpecialAgentUsage(
-  supabase: SupabaseClient,
   userId: string,
   currentCount?: number
 ): Promise<void> {
@@ -288,35 +260,17 @@ export async function incrementSpecialAgentUsage(
   if (typeof currentCount === "number") {
     specialAgentCount = currentCount
   } else {
-    const { data, error } = await supabase
-      .from("users")
-      .select("special_agent_count")
-      .eq("id", userId)
-      .maybeSingle()
-
-    if (error || !data) {
-      throw new Error(
-        "Failed to fetch special agent count: " +
-          (error?.message || "Not found")
-      )
+    const user = await getDocument<FirebaseUser>(COLLECTIONS.USERS, userId)
+    if (!user) {
+      throw new Error("User not found")
     }
-
-    specialAgentCount = data.special_agent_count || 0
+    specialAgentCount = user.special_agent_count || 0
   }
 
-  const { error: updateError } = await supabase
-    .from("users")
-    .update({
-      special_agent_count: specialAgentCount + 1,
-      last_active_at: new Date().toISOString(),
-    })
-    .eq("id", userId)
-
-  if (updateError) {
-    throw new Error(
-      "Failed to increment special agent count: " + updateError.message
-    )
-  }
+  await updateDocument(COLLECTIONS.USERS, userId, {
+    special_agent_count: specialAgentCount + 1,
+    last_active_at: new Date() as any,
+  })
 }
 
 /**

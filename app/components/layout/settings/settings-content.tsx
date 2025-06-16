@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { cn, isDev } from "@/lib/utils"
 import { GearSix, PaintBrush, PlugsConnected, X, Sparkle, Brain, Robot } from "@phosphor-icons/react"
 import { useState } from "react"
@@ -105,7 +105,7 @@ export function SettingsContent({
             <div className="flex-1 overflow-y-auto px-4 pb-8">
               <TabsContent value="general" className="mt-0 space-y-8 h-full">
                 <UserProfile />
-                {isSupabaseEnabled && (
+                {isFirebaseEnabled && (
                   <>
                     <AccountManagement />
                   </>
@@ -113,11 +113,11 @@ export function SettingsContent({
               </TabsContent>
 
               <TabsContent value="agents" className="mt-0 space-y-8 h-full">
-                {isSupabaseEnabled && <AgentsSection />}
+                {isFirebaseEnabled && <AgentsSection />}
               </TabsContent>
 
               <TabsContent value="models" className="mt-0 space-y-8 h-full">
-                {isSupabaseEnabled && <ModelsSection />}
+                {isFirebaseEnabled && <ModelsSection />}
               </TabsContent>
 
               <TabsContent value="features" className="mt-0 space-y-8 h-full">
@@ -208,7 +208,7 @@ export function SettingsContent({
             <div className="flex-1 overflow-auto px-6 pt-4">
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
-                {isSupabaseEnabled && (
+                {isFirebaseEnabled && (
                   <>
                     <AccountManagement />
                   </>
@@ -216,11 +216,11 @@ export function SettingsContent({
               </TabsContent>
 
               <TabsContent value="agents" className="mt-0 space-y-6">
-                {isSupabaseEnabled && <AgentsSection />}
+                {isFirebaseEnabled && <AgentsSection />}
               </TabsContent>
 
               <TabsContent value="models" className="mt-0 space-y-6">
-                {isSupabaseEnabled && <ModelsSection />}
+                {isFirebaseEnabled && <ModelsSection />}
               </TabsContent>
 
               <TabsContent value="appearance" className="mt-0 space-y-6">

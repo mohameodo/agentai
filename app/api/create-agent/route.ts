@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase/client"
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { nanoid } from "nanoid"
 import slugify from "slugify"
 
@@ -33,53 +35,72 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = await createClient()
-
-    if (!supabase) {
+    if (!isFirebaseEnabled) {
       return new Response(
-        JSON.stringify({ error: "Supabase not available in this deployment." }),
+        JSON.stringify({ error: "Firebase not available in this deployment." }),
         { status: 200 }
       )
     }
 
-    const { data: authData } = await supabase.auth.getUser()
+    const auth = getFirebaseAuth()
+    const db = getFirebaseFirestore()
 
-    if (!authData?.user?.id) {
-      return new Response(JSON.stringify({ error: "Missing userId" }), {
-        status: 400,
+    if (!auth || !db) {
+      return new Response(
+        JSON.stringify({ error: "Firebase services not available." }),
+        { status: 500 }
+      )
+    }
+
+    const user = auth.currentUser
+    if (!user?.uid) {
+      return new Response(JSON.stringify({ error: "User not authenticated" }), {
+        status: 401,
       })
     }
 
     // Always use the actual user as creator_id for database integrity
-    // We'll track whether it should display as "Nexiloop" via a separate field
-    const creatorId = authData.user.id
+    const creatorId = user.uid
+    const agentSlug = generateAgentSlug(name)
 
-    const { data: agent, error: supabaseError } = await supabase
-      .from("agents")
-      .insert({
-        slug: generateAgentSlug(name),
-        name,
-        description,
-        avatar_url: null, // Remove MCP-related avatar
-        mcp_config: null, // Always set to null since we're removing MCP
-        example_inputs,
-        tools,
-        remixable,
-        is_public,
-        system_prompt: systemPrompt,
-        max_steps,
-        creator_id: creatorId,
-      })
-      .select()
-      .single()
-
-    if (supabaseError) {
-      return new Response(JSON.stringify({ error: supabaseError.message }), {
-        status: 500,
-      })
+    const agentData = {
+      slug: agentSlug,
+      name,
+      description,
+      avatar_url: null, // Remove MCP-related avatar
+      mcp_config: null, // Always set to null since we're removing MCP
+      example_inputs,
+      tools,
+      remixable,
+      is_public,
+      system_prompt: systemPrompt,
+      max_steps,
+      creator_id: creatorId,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
     }
 
-    return new Response(JSON.stringify({ agent }), { status: 201 })
+    try {
+      const agentRef = doc(db, "agents", agentSlug)
+      await setDoc(agentRef, agentData)
+
+      // Return agent data with timestamp for response
+      const responseAgent = {
+        ...agentData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
+      return new Response(JSON.stringify({ agent: responseAgent }), { status: 201 })
+    } catch (firebaseError) {
+      console.error("Firebase error:", firebaseError)
+      return new Response(
+        JSON.stringify({ 
+          error: firebaseError instanceof Error ? firebaseError.message : "Database error" 
+        }),
+        { status: 500 }
+      )
+    }
   } catch (err: unknown) {
     console.error("Error in create-agent endpoint:", err)
 

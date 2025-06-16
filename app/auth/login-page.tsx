@@ -3,9 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { signInWithGoogle } from "@/lib/api"
-import { createClient } from "@/lib/supabase/client"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/firebase/auth"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -27,9 +26,7 @@ export default function LoginPage() {
   }
 
   async function handleSignInWithGoogle() {
-    const supabase = createClient()
-
-    if (!supabase || !isSupabaseEnabled) {
+    if (!isFirebaseEnabled) {
       setError("Google Sign-in is not available. Please use guest mode or contact support.")
       return
     }
@@ -39,16 +36,11 @@ export default function LoginPage() {
       setError(null)
 
       console.log("Starting Google sign-in...")
-      const data = await signInWithGoogle(supabase)
-      console.log("Google sign-in response:", data)
+      const user = await signInWithGoogle()
+      console.log("Google sign-in successful:", user)
 
-      // Redirect to the provider URL
-      if (data?.url) {
-        console.log("Redirecting to:", data.url)
-        window.location.href = data.url
-      } else {
-        throw new Error("No redirect URL received from authentication provider")
-      }
+      // Redirect to home page
+      router.push("/")
     } catch (err: unknown) {
       console.error("Error signing in with Google:", err)
       const errorMessage = (err as Error).message || "An unexpected error occurred. Please try again."
@@ -58,12 +50,8 @@ export default function LoginPage() {
     }
   }
 
-  // Remove the entire handleSignInWithGitHub function
-
   async function handleEmailAuth() {
-    const supabase = createClient()
-
-    if (!supabase || !isSupabaseEnabled) {
+    if (!isFirebaseEnabled) {
       setError("Email authentication is not available. Please use guest mode or contact support.")
       return
     }
@@ -73,37 +61,18 @@ export default function LoginPage() {
       setError(null)
 
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`
-          }
-        })
-        
-        if (error) {
-          setError(error.message)
-        } else {
-          setError("Check your email for a confirmation link!")
-        }
+        const user = await signUpWithEmail(email, password)
+        console.log("Sign up successful:", user)
+        router.push("/")
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        
-        if (error) {
-          setError(error.message)
-        } else {
-          router.push("/")
-        }
+        const user = await signInWithEmail(email, password)
+        console.log("Sign in successful:", user)
+        router.push("/")
       }
     } catch (err: unknown) {
       console.error("Error with email auth:", err)
-      setError(
-        (err as Error).message ||
-          "An unexpected error occurred. Please try again."
-      )
+      const errorMessage = (err as Error).message || "An unexpected error occurred. Please try again."
+      setError(errorMessage)
     } finally {
       setIsEmailLoading(false)
     }

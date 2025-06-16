@@ -7,13 +7,13 @@ import {
   MorphingPopoverContent,
   MorphingPopoverTrigger,
 } from "@/components/motion-primitives/morphing-popover"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { QuestionMark } from "@phosphor-icons/react"
 import { motion } from "motion/react"
 import { useState } from "react"
 
 const TRANSITION_POPOVER = {
-  type: "spring",
+  type: "spring" as const,
   bounce: 0.1,
   duration: 0.3,
 }
@@ -26,7 +26,7 @@ export function FeedbackWidget({ authUserId }: FeedbackWidgetProps) {
   const [isOpen, setIsOpen] = useState(false)
   const isMobileOrTablet = useBreakpoint(896)
 
-  if (!isSupabaseEnabled) {
+  if (!isFirebaseEnabled) {
     return null
   }
 

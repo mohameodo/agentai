@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/client"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { createClient } from "@/lib/firebase/client"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import type { Message as MessageAISDK } from "ai"
 import { readFromIndexedDB, writeToIndexedDB } from "../persist"
 
@@ -7,7 +7,7 @@ export async function getMessagesFromDb(
   chatId: string
 ): Promise<MessageAISDK[]> {
   // fallback to local cache only
-  if (!isSupabaseEnabled) {
+  if (!isFirebaseEnabled) {
     const cached = await getCachedMessages(chatId)
     return cached
   }

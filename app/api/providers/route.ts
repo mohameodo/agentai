@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getEffectiveApiKey, Provider } from "@/lib/user-keys"
 import { validateCsrfToken } from "@/lib/csrf"
-import { createClient } from "@/lib/supabase/server"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseAuth } from "@/lib/firebase/client"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,13 +12,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 })
     }
 
-    const supabase = await createClient()
-    if (!supabase) {
-      return NextResponse.json({ error: "Database not available" }, { status: 500 })
+    if (!isFirebaseEnabled) {
+      return NextResponse.json({ error: "Firebase not available" }, { status: 500 })
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || user.id !== userId) {
+    const auth = getFirebaseAuth()
+    if (!auth) {
+      return NextResponse.json({ error: "Firebase auth not available" }, { status: 500 })
+    }
+
+    const user = auth.currentUser
+    if (!user || user.uid !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

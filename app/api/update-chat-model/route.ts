@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { doc, updateDoc } from "firebase/firestore"
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
     const { chatId, model } = await request.json()
 
     if (!chatId || !model) {
@@ -12,31 +13,35 @@ export async function POST(request: Request) {
       )
     }
 
-    // If Supabase is not available, we still return success
-    if (!supabase) {
-      console.log("Supabase not enabled, skipping DB update")
+    // If Firebase is not available, we still return success
+    if (!isFirebaseEnabled) {
+      console.log("Firebase not enabled, skipping DB update")
       return new Response(JSON.stringify({ success: true }), { status: 200 })
     }
 
-    const { error } = await supabase
-      .from("chats")
-      .update({ model })
-      .eq("id", chatId)
+    const db = getFirebaseFirestore()
+    if (!db) {
+      console.log("Firebase Firestore not available, skipping DB update")
+      return new Response(JSON.stringify({ success: true }), { status: 200 })
+    }
 
-    if (error) {
+    try {
+      const chatRef = doc(db, "chats", chatId)
+      await updateDoc(chatRef, { model })
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+      })
+    } catch (error) {
       console.error("Error updating chat model:", error)
       return new Response(
         JSON.stringify({
           error: "Failed to update chat model",
-          details: error.message,
+          details: error instanceof Error ? error.message : "Unknown error",
         }),
         { status: 500 }
       )
     }
-
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-    })
   } catch (err: unknown) {
     console.error("Error in update-chat-model endpoint:", err)
     return new Response(

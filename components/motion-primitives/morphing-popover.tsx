@@ -20,8 +20,9 @@ import {
 } from "react"
 
 const TRANSITION = {
-  type: "spring",
-  bounce: 0.1,
+  type: "spring" as const,
+  stiffness: 260,
+  damping: 20,
   duration: 0.4,
 }
 

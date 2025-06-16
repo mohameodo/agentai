@@ -1,8 +1,8 @@
 import { filterLocalAgentId } from "@/lib/agents/utils"
 import { readFromIndexedDB, writeToIndexedDB } from "@/lib/chat-store/persist"
 import type { Chat, Chats } from "@/lib/chat-store/types"
-import { createClient } from "@/lib/supabase/client"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { createClient } from "@/lib/firebase/client"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { MODEL_DEFAULT } from "../../config"
 import { fetchClient } from "../../fetch"
 import {
@@ -79,7 +79,7 @@ export async function createChatInDb(
 }
 
 export async function fetchAndCacheChats(userId: string): Promise<Chats[]> {
-  if (!isSupabaseEnabled) {
+  if (!isFirebaseEnabled) {
     return await getCachedChats()
   }
 

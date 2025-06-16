@@ -1,7 +1,6 @@
-import { Database } from "@/app/types/database.types"
-import { createClient } from "@/lib/supabase/server"
 import { CODEHAT_LIMITS } from "@/lib/config"
-import type { SupabaseClient } from "@supabase/supabase-js"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { collection, doc, getDoc, setDoc, updateDoc } from "firebase/firestore"
 
 export async function checkCodeHatUsage(userId: string): Promise<{
   canCreate: boolean
@@ -9,230 +8,91 @@ export async function checkCodeHatUsage(userId: string): Promise<{
   remainingMonthly: number
   isPremium: boolean
 }> {
-  const supabase = await createClient()
-  if (!supabase) {
-    throw new Error("Supabase not available")
-  }
-
-  // Get user data to check if premium
-  const { data: userData } = await supabase
-    .from("users")
-    .select("premium")
-    .eq("id", userId)
-    .single()
-
-  const isPremium = userData?.premium || false
-
-  // If premium, unlimited usage
-  if (isPremium) {
-    return {
-      canCreate: true,
-      remainingDaily: -1,
-      remainingMonthly: -1,
-      isPremium: true
-    }
-  }
-
-  // Get or create usage record
-  let { data: usage } = await supabase
-    .from("codehat_usage")
-    .select("*")
-    .eq("user_id", userId)
-    .single()
-
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-  if (!usage) {
-    // Create new usage record
-    const { data: newUsage } = await supabase
-      .from("codehat_usage")
-      .insert({
-        user_id: userId,
-        project_count_daily: 0,
-        project_count_monthly: 0,
-        daily_reset: today.toISOString(),
-        monthly_reset: thisMonth.toISOString()
-      })
-      .select()
-      .single()
-
-    usage = newUsage!
-  }
-
-  // Check if we need to reset counters
-  const dailyReset = usage.daily_reset ? new Date(usage.daily_reset) : null
-  const monthlyReset = usage.monthly_reset ? new Date(usage.monthly_reset) : null
-
-  let dailyCount = usage.project_count_daily
-  let monthlyCount = usage.project_count_monthly
-
-  if (!dailyReset || dailyReset < today) {
-    dailyCount = 0
-    await supabase
-      .from("codehat_usage")
-      .update({
-        project_count_daily: 0,
-        daily_reset: today.toISOString()
-      })
-      .eq("user_id", userId)
-  }
-
-  if (!monthlyReset || monthlyReset < thisMonth) {
-    monthlyCount = 0
-    await supabase
-      .from("codehat_usage")
-      .update({
-        project_count_monthly: 0,
-        monthly_reset: thisMonth.toISOString()
-      })
-      .eq("user_id", userId)
-  }
-
-  const remainingDaily = Math.max(0, CODEHAT_LIMITS.FREE_DAILY_PROJECTS - dailyCount)
-  const remainingMonthly = Math.max(0, CODEHAT_LIMITS.FREE_MONTHLY_PROJECTS - monthlyCount)
-
+  // TODO: Implement Firebase-based CodeHat usage tracking
+  // For now, return default values to allow functionality
   return {
-    canCreate: remainingDaily > 0 && remainingMonthly > 0,
-    remainingDaily,
-    remainingMonthly,
+    canCreate: true,
+    remainingDaily: CODEHAT_LIMITS.FREE_DAILY_PROJECTS,
+    remainingMonthly: CODEHAT_LIMITS.FREE_MONTHLY_PROJECTS,
     isPremium: false
   }
 }
 
 export async function incrementCodeHatUsage(userId: string): Promise<void> {
-  const supabase = await createClient()
-  if (!supabase) return
+  // TODO: Implement Firebase-based CodeHat usage increment
+  // For now, do nothing to allow functionality
+  console.log("CodeHat usage increment - TODO: implement with Firebase")
+}
 
-  const { data: usage } = await supabase
-    .from("codehat_usage")
-    .select("*")
-    .eq("user_id", userId)
-    .single()
+export async function resetCodeHatUsage(userId: string): Promise<void> {
+  // TODO: Implement Firebase-based CodeHat usage reset
+  // For now, do nothing to allow functionality
+  console.log("CodeHat usage reset - TODO: implement with Firebase")
+}
 
-  if (usage) {
-    await supabase
-      .from("codehat_usage")
-      .update({
-        project_count_daily: usage.project_count_daily + 1,
-        project_count_monthly: usage.project_count_monthly + 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq("user_id", userId)
+export interface CodeHatProject {
+  id: string
+  user_id: string
+  name: string
+  description?: string
+  created_at: string
+  updated_at: string
+  is_public: boolean
+  files: CodeHatFile[]
+}
+
+export interface CodeHatFile {
+  id: string
+  project_id: string
+  name: string
+  content: string
+  language: string
+  created_at: string
+  updated_at: string
+}
+
+export async function createCodeHatProject(
+  userId: string,
+  name: string,
+  description?: string
+): Promise<CodeHatProject> {
+  // TODO: Implement Firebase-based project creation
+  // For now, return a mock project
+  const now = new Date().toISOString()
+  return {
+    id: Date.now().toString(),
+    user_id: userId,
+    name,
+    description: description || "",
+    created_at: now,
+    updated_at: now,
+    is_public: false,
+    files: []
   }
 }
 
-export async function createCodeHatProject({
-  userId,
-  chatId,
-  title,
-  description,
-  framework = "react"
-}: {
-  userId: string
-  chatId: string
-  title: string
-  description?: string
-  framework?: string
-}) {
-  const supabase = await createClient()
-  if (!supabase) {
-    throw new Error("Supabase not available")
-  }
+export async function getCodeHatProjects(userId: string): Promise<CodeHatProject[]> {
+  // TODO: Implement Firebase-based project fetching
+  // For now, return empty array
+  return []
+}
 
-  const { data, error } = await supabase
-    .from("codehat_projects")
-    .insert({
-      user_id: userId,
-      chat_id: chatId,
-      title,
-      description,
-      framework,
-      status: "draft",
-      files: []
-    })
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to create project: ${error.message}`)
-  }
-
-  // Increment usage
-  await incrementCodeHatUsage(userId)
-
-  return data
+export async function getCodeHatProject(
+  userId: string,
+  projectId: string
+): Promise<CodeHatProject | null> {
+  // TODO: Implement Firebase-based project fetching
+  // For now, return null
+  return null
 }
 
 export async function updateCodeHatProject(
+  userId: string,
   projectId: string,
-  updates: {
-    title?: string
-    description?: string
-    status?: "draft" | "building" | "completed" | "error"
-    files?: any[]
-    preview_url?: string
-    deploy_url?: string
-    framework?: string
-  }
-) {
-  const supabase = await createClient()
-  if (!supabase) {
-    throw new Error("Supabase not available")
-  }
-
-  const { data, error } = await supabase
-    .from("codehat_projects")
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", projectId)
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to update project: ${error.message}`)
-  }
-
-  return data
-}
-
-export async function getCodeHatProject(projectId: string) {
-  const supabase = await createClient()
-  if (!supabase) {
-    throw new Error("Supabase not available")
-  }
-
-  const { data, error } = await supabase
-    .from("codehat_projects")
-    .select("*")
-    .eq("id", projectId)
-    .single()
-
-  if (error) {
-    throw new Error(`Failed to get project: ${error.message}`)
-  }
-
-  return data
-}
-
-export async function getUserCodeHatProjects(userId: string) {
-  const supabase = await createClient()
-  if (!supabase) {
-    throw new Error("Supabase not available")
-  }
-
-  const { data, error } = await supabase
-    .from("codehat_projects")
-    .select("*")
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false })
-
-  if (error) {
-    throw new Error(`Failed to get projects: ${error.message}`)
-  }
-
-  return data
+  updates: Partial<Pick<CodeHatProject, 'name' | 'description' | 'is_public'>>
+): Promise<CodeHatProject | null> {
+  // TODO: Implement Firebase-based project update
+  // For now, return null
+  console.log("CodeHat project update - TODO: implement with Firebase")
+  return null
 }

@@ -1,5 +1,5 @@
 import { Agent } from "@/app/types/agent"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/firebase/client"
 import { CURATED_AGENTS_SLUGS } from "../config"
 
 export async function fetchCuratedAgentsFromDb(): Promise<Agent[] | null> {

@@ -1,8 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { createClient } from "@/lib/supabase/client"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseAuth } from "@/lib/firebase/client"
+import { signInWithGoogle } from "@/lib/firebase/auth"
 import { useEffect, useState } from "react"
 
 export default function AuthDebugPage() {
@@ -10,14 +11,14 @@ export default function AuthDebugPage() {
 
   useEffect(() => {
     const checkConfig = () => {
-      const supabase = createClient()
+      const auth = getFirebaseAuth()
       
       setDebugInfo({
-        isSupabaseEnabled,
-        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        supabaseClient: !!supabase,
+        isFirebaseEnabled,
+        hasFirebaseConfig: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        hasFirebaseProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        firebaseAuth: !!auth,
+        currentUser: auth?.currentUser?.uid || null,
         windowOrigin: typeof window !== "undefined" ? window.location.origin : "N/A",
         nodeEnv: process.env.NODE_ENV,
       })
@@ -28,30 +29,24 @@ export default function AuthDebugPage() {
 
   const testAuth = async () => {
     try {
-      const supabase = createClient()
-      if (!supabase) {
-        alert("Supabase client not available")
+      if (!isFirebaseEnabled) {
+        alert("Firebase is not enabled")
         return
       }
 
       console.log("Testing Google auth...")
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      console.log("Auth response:", { data, error })
+      const user = await signInWithGoogle()
       
-      if (error) {
-        alert(`Auth error: ${error.message}`)
-      } else if (data?.url) {
-        alert(`Auth URL generated: ${data.url}`)
-        window.open(data.url, '_blank')
+      if (user) {
+        alert(`Auth successful! User: ${user.email}`)
+        // Refresh debug info
+        setDebugInfo((prev: any) => ({
+          ...prev,
+          currentUser: user.uid
+        }))
       } else {
-        alert("No URL returned from auth")
+        alert("Auth cancelled or failed")
       }
     } catch (err) {
       console.error("Test auth error:", err)
@@ -61,7 +56,7 @@ export default function AuthDebugPage() {
 
   return (
     <div className="container mx-auto max-w-4xl p-6">
-      <h1 className="text-2xl font-bold mb-6">Authentication Debug Page</h1>
+      <h1 className="text-2xl font-bold mb-6">Firebase Authentication Debug Page</h1>
       
       <div className="space-y-6">
         <div className="bg-gray-100 p-4 rounded-lg">
@@ -83,10 +78,10 @@ export default function AuthDebugPage() {
         <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
           <h3 className="font-medium text-yellow-800 mb-2">Common Issues:</h3>
           <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• Check that NEXT_PUBLIC_SUPABASE_URL is set</li>
-            <li>• Check that NEXT_PUBLIC_SUPABASE_ANON_KEY is set</li>
-            <li>• Verify Google OAuth provider is configured in Supabase dashboard</li>
-            <li>• Ensure redirect URLs match in Supabase settings</li>
+            <li>• Check that NEXT_PUBLIC_FIREBASE_API_KEY is set</li>
+            <li>• Check that NEXT_PUBLIC_FIREBASE_PROJECT_ID is set</li>
+            <li>• Verify Google OAuth provider is configured in Firebase console</li>
+            <li>• Ensure authorized domains match in Firebase settings</li>
             <li>• Check browser console for detailed error messages</li>
           </ul>
         </div>

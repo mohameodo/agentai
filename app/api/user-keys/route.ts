@@ -1,38 +1,53 @@
-import { createClient } from "@/lib/supabase/server"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase/client"
+import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { validateCsrfToken } from "@/lib/csrf"
 import { encryptKey, maskKey, decryptKey } from "@/lib/encryption"
 import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase not available" }, { status: 500 })
+    if (!isFirebaseEnabled) {
+      return NextResponse.json({ error: "Firebase not available" }, { status: 500 })
     }
 
-    const { data: authData } = await supabase.auth.getUser()
-    if (!authData?.user?.id) {
+    const auth = getFirebaseAuth()
+    const db = getFirebaseFirestore()
+
+    if (!auth || !db) {
+      return NextResponse.json({ error: "Firebase services not available" }, { status: 500 })
+    }
+
+    const user = auth.currentUser
+    if (!user?.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: userKeys, error } = await supabase
-      .from("user_keys")
-      .select("provider, encrypted_key, iv")
-      .eq("user_id", authData.user.id)
+    const q = query(
+      collection(db, "user_keys"),
+      where("user_id", "==", user.uid)
+    )
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    try {
+      const querySnapshot = await getDocs(q)
+      const maskedKeys: Array<{ provider: string; maskedKey: string }> = []
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        if (data.encrypted_key && data.iv) {
+          const decryptedKey = decryptKey(data.encrypted_key, data.iv)
+          maskedKeys.push({
+            provider: data.provider,
+            maskedKey: maskKey(decryptedKey),
+          })
+        }
+      })
+
+      return NextResponse.json({ keys: maskedKeys })
+    } catch (error) {
+      console.error("Error fetching user keys:", error)
+      return NextResponse.json({ error: "Failed to fetch user keys" }, { status: 500 })
     }
-
-    const maskedKeys = userKeys?.map(key => {
-      const decryptedKey = decryptKey(key.encrypted_key, key.iv)
-      return {
-        provider: key.provider,
-        maskedKey: maskKey(decryptedKey)
-      }
-    }) || []
-
-    return NextResponse.json({ keys: maskedKeys })
   } catch (error) {
     console.error("Error in GET /api/user-keys:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -51,33 +66,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Provider and API key are required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase not available" }, { status: 500 })
+    if (!isFirebaseEnabled) {
+      return NextResponse.json({ error: "Firebase not available" }, { status: 500 })
     }
 
-    const { data: authData } = await supabase.auth.getUser()
-    if (!authData?.user?.id) {
+    const auth = getFirebaseAuth()
+    const db = getFirebaseFirestore()
+
+    if (!auth || !db) {
+      return NextResponse.json({ error: "Firebase services not available" }, { status: 500 })
+    }
+
+    const user = auth.currentUser
+    if (!user?.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { encrypted, iv } = encryptKey(apiKey)
 
-    const { error } = await supabase
-      .from("user_keys")
-      .upsert({
-        user_id: authData.user.id,
+    try {
+      // Use compound key: user_id + provider
+      const userKeyRef = doc(db, "user_keys", `${user.uid}_${provider}`)
+      await setDoc(userKeyRef, {
+        user_id: user.uid,
         provider,
         encrypted_key: encrypted,
         iv,
-        updated_at: new Date().toISOString()
+        updated_at: serverTimestamp(),
       })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ success: true })
+    } catch (error) {
+      console.error("Error saving user key:", error)
+      return NextResponse.json({ error: "Failed to save user key" }, { status: 500 })
     }
-
-    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error in POST /api/user-keys:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

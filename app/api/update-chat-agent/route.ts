@@ -1,5 +1,8 @@
 import { filterLocalAgentId } from "@/lib/agents/utils"
 import { validateUserIdentity } from "@/lib/server/api"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { doc, updateDoc } from "firebase/firestore"
 
 export async function POST(request: Request) {
   try {
@@ -15,10 +18,10 @@ export async function POST(request: Request) {
     // Filter out local agent IDs for database operations
     const dbAgentId = filterLocalAgentId(agentId)
 
-    const supabase = await validateUserIdentity(userId, isAuthenticated)
+    const isValidUser = await validateUserIdentity(userId, isAuthenticated)
 
-    if (!supabase) {
-      console.log("Supabase not enabled, skipping agent update")
+    if (!isValidUser || !isFirebaseEnabled) {
+      console.log("Firebase not enabled, skipping agent update")
       return new Response(
         JSON.stringify({ chat: { id: chatId, agent_id: dbAgentId } }),
         {
@@ -27,22 +30,31 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data, error: updateError } = await supabase
-      .from("chats")
-      .update({ agent_id: dbAgentId || null })
-      .eq("id", chatId)
-      .select()
-      .single()
+    const db = getFirebaseFirestore()
+    if (!db) {
+      console.log("Firebase Firestore not available, skipping agent update")
+      return new Response(
+        JSON.stringify({ chat: { id: chatId, agent_id: dbAgentId } }),
+        {
+          status: 200,
+        }
+      )
+    }
 
-    if (updateError) {
+    try {
+      const chatRef = doc(db, "chats", chatId)
+      await updateDoc(chatRef, { agent_id: dbAgentId || null })
+
+      return new Response(
+        JSON.stringify({ chat: { id: chatId, agent_id: dbAgentId } }),
+        { status: 200 }
+      )
+    } catch (updateError) {
+      console.error("Error updating chat agent:", updateError)
       return new Response(JSON.stringify({ error: "Failed to update chat" }), {
         status: 500,
       })
     }
-
-    return new Response(JSON.stringify({ chat: data }), {
-      status: 200,
-    })
   } catch (error) {
     console.error("Error updating chat agent:", error)
     return new Response(

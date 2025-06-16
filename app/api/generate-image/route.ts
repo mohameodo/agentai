@@ -1,5 +1,7 @@
 import { DAILY_IMAGE_GENERATION_LIMIT } from "@/lib/config"
-import { createClient } from "@/lib/supabase/server"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
 import { NextResponse } from "next/server"
 
 export const maxDuration = 60
@@ -12,46 +14,55 @@ type ImageGenerationRequest = {
 }
 
 async function checkImageGenerationUsage(userId: string): Promise<{ canGenerate: boolean; usageCount: number }> {
-  const supabase = await createClient()
-  
-  if (!supabase) {
+  if (!isFirebaseEnabled) {
+    return { canGenerate: false, usageCount: 0 }
+  }
+
+  const db = getFirebaseFirestore()
+  if (!db) {
     return { canGenerate: false, usageCount: 0 }
   }
 
   const today = new Date().toISOString().split('T')[0]
+  const startOfDay = new Date(`${today}T00:00:00.000Z`)
+  const endOfDay = new Date(`${today}T23:59:59.999Z`)
   
-  const { data, error } = await supabase
-    .from('image_generations')
-    .select('*')
-    .eq('user_id', userId)
-    .gte('created_at', `${today}T00:00:00.000Z`)
-    .lt('created_at', `${today}T23:59:59.999Z`)
+  try {
+    const q = query(
+      collection(db, 'image_generations'),
+      where('user_id', '==', userId),
+      where('created_at', '>=', startOfDay),
+      where('created_at', '<=', endOfDay)
+    )
 
-  if (error) {
+    const querySnapshot = await getDocs(q)
+    const usageCount = querySnapshot.size
+    const canGenerate = usageCount < DAILY_IMAGE_GENERATION_LIMIT
+
+    return { canGenerate, usageCount }
+  } catch (error) {
     console.error('Error checking image generation usage:', error)
     return { canGenerate: false, usageCount: 0 }
   }
-
-  const usageCount = data?.length || 0
-  const canGenerate = usageCount < DAILY_IMAGE_GENERATION_LIMIT
-
-  return { canGenerate, usageCount }
 }
 
 async function trackImageGeneration(userId: string, model: string, prompt: string): Promise<void> {
-  const supabase = await createClient()
-  
-  if (!supabase) return
+  if (!isFirebaseEnabled) return
 
-  await supabase
-    .from('image_generations')
-    .insert({
+  const db = getFirebaseFirestore()
+  if (!db) return
+
+  try {
+    await addDoc(collection(db, 'image_generations'), {
       user_id: userId,
       model,
       prompt,
-      created_at: new Date().toISOString(),
+      created_at: serverTimestamp(),
       generation_date: new Date().toISOString().split('T')[0] // YYYY-MM-DD format
     })
+  } catch (error) {
+    console.error('Error tracking image generation:', error)
+  }
 }
 
 export async function POST(req: Request) {

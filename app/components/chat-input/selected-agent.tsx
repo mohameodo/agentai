@@ -20,9 +20,10 @@ import Link from "next/link"
 import React, { useState } from "react"
 
 const TRANSITION = {
-  type: "spring",
+  type: "spring" as const,
   duration: 0.2,
-  bounce: 0,
+  stiffness: 260,
+  damping: 20,
 }
 
 function HoverCard({

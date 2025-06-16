@@ -11,7 +11,7 @@
 - 📦 **Node.js 18+** (the engine that powers everything)
 - 📱 **npm or yarn** (your package manager bestie)  
 - 🌐 **Git** (for cloning this beauty)
-- 🗄️ **Supabase account** (free tier works great!)
+- � **Firebase project** (free tier works great!)
 - 🔑 **AI API keys** (or run local models with Ollama)
 
 ## ⚡ Quick Start (5 Minutes to Success)
@@ -32,7 +32,8 @@ cp .env.example .env.local
 # Edit .env.local with your API keys (see below)
 
 # 4. Set up the database
-# Go to your Supabase dashboard and run sql/COMPLETE_DATABASE_SETUP.sql
+# Set up Firebase (see FIREBASE_MIGRATION_GUIDE.md for details)
+firebase deploy
 
 # 5. Start the party!
 npm run dev
@@ -45,7 +46,7 @@ npm run dev
 **Create `.env.local` and add your keys:**
 
 ```bash
-# 🗄️ Supabase (Required - Get these from supabase.com)
+# � Firebase (Required - Get these from console.firebase.google.com)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE=your_service_role_key

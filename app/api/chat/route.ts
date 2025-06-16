@@ -63,7 +63,6 @@ async function handleImageGeneration(
   userId: string, 
   isAuthenticated: boolean,
   chatId: string,
-  supabase: any,
   preferredImageModel?: string
 ): Promise<Response> {
   try {
@@ -116,22 +115,14 @@ async function handleImageGeneration(
       }
     }
 
-    // Store the assistant message if we have supabase
-    if (supabase) {
-      await supabase.from("messages").insert({
-        chat_id: chatId,
-        role: "assistant", 
-        content: assistantMessage,
-        user_id: userId,
-        parts: JSON.stringify([{
-          type: "image-generation",
-          imageUrl: imageData.imageUrl,
-          prompt,
-          model: defaultImageModel,
-          remainingGenerations: imageData.remainingGenerations
-        }])
-      })
-    }
+    // TODO: Store the assistant message in Firebase if needed
+    // For now, just log the image generation result
+    console.log("Image generated:", {
+      chatId,
+      prompt,
+      model: defaultImageModel,
+      imageUrl: imageData.imageUrl
+    })
 
     // Return a streaming response with image data
     const encoder = new TextEncoder()
@@ -211,7 +202,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const supabase = await validateAndTrackUsage({
+    const isValidUser = await validateAndTrackUsage({
       userId,
       model,
       isAuthenticated,
@@ -219,9 +210,8 @@ export async function POST(req: Request) {
 
     const userMessage = messages[messages.length - 1]
 
-    if (supabase && userMessage?.role === "user") {
+    if (isValidUser && userMessage?.role === "user") {
       await logUserMessage({
-        supabase,
         userId,
         chatId,
         content: userMessage.content,
@@ -239,7 +229,6 @@ export async function POST(req: Request) {
           userId,
           isAuthenticated,
           chatId,
-          supabase,
           preferredImageModel
         )
       }
@@ -276,8 +265,8 @@ THINK MODE ENABLED: You are now in enhanced reasoning mode. Please think through
 
     if (agentConfig?.tools) {
       toolsToUse = agentConfig.tools
-      if (supabase) {
-        await trackSpecialAgentUsage(supabase, userId)
+      if (isValidUser) {
+        await trackSpecialAgentUsage(userId)
       }
     } else {
       // Check if the user's message suggests movie/TV search and if streaming is enabled
@@ -322,9 +311,8 @@ THINK MODE ENABLED: You are now in enhanced reasoning mode. Please think through
       },
 
       onFinish: async ({ response }) => {
-        if (supabase) {
+        if (isValidUser) {
           await storeAssistantMessage({
-            supabase,
             chatId,
             messages:
               response.messages as unknown as import("@/app/types/api.types").Message[],

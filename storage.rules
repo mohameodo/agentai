@@ -1,0 +1,30 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Users can upload and manage their own files
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Chat attachments - users can only access attachments from their own chats
+    match /chat_attachments/{chatId}/{fileName} {
+      allow read, write: if request.auth != null && 
+        firestore.exists(/databases/(default)/documents/chats/$(chatId)) &&
+        firestore.get(/databases/(default)/documents/chats/$(chatId)).data.user_id == request.auth.uid;
+    }
+    
+    // Public assets that anyone can read
+    match /public/{allPaths=**} {
+      allow read;
+      allow write: if request.auth != null;
+    }
+    
+    // Agent avatars - readable by anyone, writable by creator
+    match /agent_avatars/{agentId}/{fileName} {
+      allow read;
+      allow write: if request.auth != null &&
+        firestore.exists(/databases/(default)/documents/agents/$(agentId)) &&
+        firestore.get(/databases/(default)/documents/agents/$(agentId)).data.creator_id == request.auth.uid;
+    }
+  }
+}

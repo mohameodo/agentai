@@ -63,7 +63,7 @@ When using this template:
 - Use environment-specific configurations
 
 ### Database Security
-- Use Row Level Security (RLS) in Supabase
+- Use Firestore Security Rules for data protection
 - Implement proper authentication checks
 - Validate all user inputs
 - Use parameterized queries

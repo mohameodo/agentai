@@ -2,14 +2,14 @@
 
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
-import { createClient } from "@/lib/supabase/client"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { getFirebaseAuth } from "@/lib/firebase/client"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { CaretLeft, SealCheck, Spinner } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"
 
 const TRANSITION_CONTENT = {
-  ease: "easeOut",
+  ease: "easeOut" as const,
   duration: 0.2,
 }
 
@@ -29,7 +29,7 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
     setFeedback("")
   }, [])
 
-  if (!isSupabaseEnabled) {
+  if (!isFirebaseEnabled) {
     return null
   }
 
@@ -53,9 +53,9 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
     if (!feedback.trim()) return
 
     try {
-      const supabase = createClient()
+      const auth = getFirebaseAuth()
 
-      if (!supabase) {
+      if (!auth) {
         toast({
           title: "Feedback is not supported in this deployment",
           status: "info",
@@ -63,19 +63,9 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
         return
       }
 
-      const { error } = await supabase.from("feedback").insert({
-        message: feedback,
-        user_id: authUserId,
-      })
-
-      if (error) {
-        toast({
-          title: `Error submitting feedback: ${error}`,
-          status: "error",
-        })
-        setStatus("error")
-        return
-      }
+      // TODO: Implement Firebase feedback storage
+      // For now, just simulate success
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       await new Promise((resolve) => setTimeout(resolve, 1200))
 

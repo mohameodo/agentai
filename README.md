@@ -13,7 +13,8 @@ This isn't just another boring AI chat app. This is **Nexiloop AI** - where conv
 - **CodeHat** - Built-in code editor that actually understands what you're doing (chef's kiss)
 - **Think Mode** - Watch the AI think through complex problems step by step (big brain time)
 - **Image Generation** - Create stunning visuals with AI (artistic bestie)
-- **Multi-auth** - Google, GitHub, or email - your choice (we don't judge)
+- **Multi-auth** - Google, email, or guest mode - your choice (we don't judge)
+- **Real-time Everything** - Live updates, collaborative features (Firebase magic ✨)
 - **Actually Free** - No sketchy paywalls for basic features (we're not evil)
 
 ## Quick Start (Get Running in 5 Minutes)
@@ -32,15 +33,19 @@ yarn install
 ```
 
 ### 3. Set Up Your Environment
-Copy `.env.example` to `.env.local` and fill in your secrets:
+Copy `.env.example` to `.env.local` and fill in your Firebase config:
 ```bash
 cp .env.example .env.local
 ```
 
-### 4. Database Setup (One Command!)
-Head to your Supabase dashboard, open SQL editor, and run:
-```sql
--- Copy the contents of sql/database-setup.sql and run it
+### 4. Firebase Setup (Super Easy!)
+Head to [Firebase Console](https://console.firebase.google.com/), create a project, and:
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Deploy rules and indexes
+npm run firebase:deploy
 ```
 
 ### 5. Fire It Up!
@@ -53,7 +58,7 @@ Visit `http://localhost:3000` and boom! You're in business 💪
 ## What You Need
 
 ### Required (The Essentials)
-- **Supabase Account** - For database and auth (free tier is perfect)
+- **Firebase Project** - For database, auth, and storage (free tier is perfect)
 - **At least one AI API key** - OpenAI, Anthropic, Google, whatever you prefer
 
 ### Optional (But Makes It Better)

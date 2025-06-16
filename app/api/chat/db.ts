@@ -1,12 +1,10 @@
-import type { Database } from "@/app/types/database.types"
-import type { SupabaseClient } from "@supabase/supabase-js"
-import type { ContentPart, Message } from "@/app/types/api.types"
-import type { Json } from "@/app/types/database.types"
+import { addDoc, collection } from "firebase/firestore"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import type { ContentPart, Message, Json } from "@/app/types/api.types"
 
 const DEFAULT_STEP = 0
 
 export async function saveFinalAssistantMessage(
-  supabase: SupabaseClient<Database>,
   chatId: string,
   messages: Message[]
 ) {
@@ -73,17 +71,22 @@ export async function saveFinalAssistantMessage(
 
   const finalPlainText = textParts.join("\n\n")
 
-  const { error } = await supabase.from("messages").insert({
-    chat_id: chatId,
-    role: "assistant",
-    content: finalPlainText || "",
-    parts: parts as unknown as Json,
-  })
-
-  if (error) {
-    console.error("Error saving final assistant message:", error)
-    throw new Error(`Failed to save assistant message: ${error.message}`)
-  } else {
+  try {
+    const db = getFirebaseFirestore()
+    if (!db) {
+      throw new Error("Firebase Firestore not available")
+    }
+    
+    await addDoc(collection(db, "messages"), {
+      chat_id: chatId,
+      role: "assistant",
+      content: finalPlainText || "",
+      parts: parts,
+      created_at: new Date(),
+    })
     console.log("Assistant message saved successfully (merged).")
+  } catch (error) {
+    console.error("Error saving final assistant message:", error)
+    throw new Error(`Failed to save assistant message: ${error}`)
   }
 }

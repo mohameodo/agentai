@@ -4,13 +4,13 @@
 
 ### Basic Info
 **Repository Name**: `nexiloop-ai-template`
-**Description**: 🤖 Complete AI chat app template with multiple models, custom agents, code editor & modern UI - production ready! Built with Next.js, Supabase, TypeScript.
+**Description**: 🤖 Complete AI chat app template with multiple models, custom agents, code editor & modern UI - production ready! Built with Next.js, Firebase, TypeScript.
 
 **Website**: `https://nexiloop-ai.vercel.app` (if you have a demo)
 
 ### Repository Topics (Tags)
 ```
-ai-chat nextjs openai claude gemini supabase typescript react ai-agents code-editor template starter chatgpt ai-assistant modern-ui full-stack docker vercel shadcn-ui tailwindcss artificial-intelligence machine-learning web-development
+ai-chat nextjs openai claude gemini firebase typescript react ai-agents code-editor template starter chatgpt ai-assistant modern-ui full-stack docker vercel shadcn-ui tailwindcss artificial-intelligence machine-learning web-development
 ```
 
 ### Template Settings
@@ -46,7 +46,7 @@ This template provides:
 ## Repository Description
 
 **Short Description (GitHub)**:
-> Complete AI chat application template with multiple models, custom agents, built-in code editor, and modern UI. Ready to deploy with Next.js, Supabase, and Docker support.
+> Complete AI chat application template with multiple models, custom agents, built-in code editor, and modern UI. Ready to deploy with Next.js, Firebase, and Docker support.
 
 **Long Description**:
 > A comprehensive, production-ready AI chat application template featuring multiple AI models (OpenAI, Claude, Gemini), custom agent creation, built-in code editor, authentication, modern UI with Tailwind CSS, and complete deployment solutions. Perfect for building AI assistants, coding tools, or any AI-powered application. Includes extensive documentation, GitHub templates, and one-click deployment options.
