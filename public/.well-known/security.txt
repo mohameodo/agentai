@@ -1,13 +1,12 @@
 # Security Policy
 
 ## Content Security Policy
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://clarity.microsoft.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob:; connect-src 'self' https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://api.mistral.ai https://api.cloudflare.com wss:; frame-ancestors 'none'; base-uri 'self';
+Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src *; connect-src *; media-src *; object-src *; child-src *; frame-src *; worker-src *; frame-ancestors *; form-action *; base-uri *;
 
 ## Strict Transport Security
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
-## X-Frame-Options
-X-Frame-Options: DENY
+## X-Frame-Options - Removed to allow all framing
 
 ## X-Content-Type-Options
 X-Content-Type-Options: nosniff
