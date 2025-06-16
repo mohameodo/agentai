@@ -24,7 +24,7 @@ export function LoadingScreen({ className }: { className?: string }) {
   return (
     <div className={cn(
       "fixed inset-0 z-50 flex flex-col items-center justify-center",
-      "bg-white dark:bg-gray-900",
+      "bg-white dark:bg-black text-black dark:text-white",
       className
     )}>
       {/* 3D Cube Animation */}

@@ -504,7 +504,7 @@ export function Chat() {
       </Suspense>
 
       <AnimatePresence initial={false} mode="popLayout">
-        {!chatId && messages.length === 0 ? (
+        {!chatId && !messages.some(msg => msg.role === 'user') ? (
           <motion.div
             key="onboarding"
             className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"

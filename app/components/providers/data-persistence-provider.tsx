@@ -23,7 +23,7 @@ export function DataPersistenceProvider({ children }: { children: React.ReactNod
   // Only save model preference changes (essential for app functionality)
   useEffect(() => {
     if (user?.id && user.preferred_model && user.preferred_model !== lastModelRef.current) {
-      console.log("Saving model preference change:", user.preferred_model)
+      // Reduced logging to prevent spam
       saveModelPreference(user.id, user.preferred_model)
       lastModelRef.current = user.preferred_model
     }
@@ -32,7 +32,7 @@ export function DataPersistenceProvider({ children }: { children: React.ReactNod
   // Only save user preferences changes (essential for app functionality)
   useEffect(() => {
     if (user?.id && preferences && preferences !== lastPreferencesRef.current) {
-      console.log("Saving user preferences change")
+      // Reduced logging to prevent spam
       saveUserPreferences(user.id, preferences)
       lastPreferencesRef.current = preferences
     }
