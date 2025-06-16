@@ -7,6 +7,7 @@ import { RealtimePreferenceSync } from "@/lib/user-preference-store/realtime-syn
 import { ModelPreferenceSync } from "@/lib/user-preference-store/model-sync"
 import { useUser } from "@/lib/user-store/provider"
 import { ReactNode } from "react"
+import { DataPersistenceProvider } from "./data-persistence-provider"
 
 interface DataProvidersProps {
   children: ReactNode
@@ -23,11 +24,13 @@ export function DataProviders({ children }: DataProvidersProps) {
     <ChatsProvider userId={user?.id}>
       <AgentProvider userId={user?.id}>
         <UserPreferencesProvider userId={user?.id}>
-          <RealtimePreferenceSync>
-            <ModelPreferenceSync>
-              {children}
-            </ModelPreferenceSync>
-          </RealtimePreferenceSync>
+          <DataPersistenceProvider>
+            <RealtimePreferenceSync>
+              <ModelPreferenceSync>
+                {children}
+              </ModelPreferenceSync>
+            </RealtimePreferenceSync>
+          </DataPersistenceProvider>
         </UserPreferencesProvider>
       </AgentProvider>
     </ChatsProvider>

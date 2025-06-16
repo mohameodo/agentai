@@ -3,6 +3,7 @@ import { UserProfile } from "@/app/types/user"
 import { toast } from "@/components/ui/toast"
 import { Message } from "@ai-sdk/react"
 import { useCallback } from "react"
+import { saveModelPreference, saveChatMessage } from "@/lib/firebase/data-persistence"
 
 type UseChatHandlersProps = {
   messages: Message[]
@@ -51,7 +52,10 @@ export function useChatHandlers({
       if (!chatId && user?.id) {
         try {
           const success = await updateUser({ preferred_model: model })
-          if (!success) {
+          if (success) {
+            // Save to Firestore for cross-device sync
+            await saveModelPreference(user.id, model)
+          } else {
             console.error("Failed to save model preference")
           }
         } catch (error) {
@@ -65,6 +69,11 @@ export function useChatHandlers({
 
       try {
         await updateChatModel(chatId!, model)
+        
+        // Save model change to Firestore
+        if (user.id) {
+          await saveModelPreference(user.id, model)
+        }
       } catch (err) {
         console.error("Failed to update chat model:", err)
         setSelectedModel(oldModel)

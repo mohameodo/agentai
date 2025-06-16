@@ -28,6 +28,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useChatHandlers } from "./use-chat-handlers"
 import { useChatUtils } from "./use-chat-utils"
 import { useFileUpload } from "./use-file-upload"
+import { saveChatMessage, saveChatHistory } from "@/lib/firebase/data-persistence"
 
 // Remove the incorrect props interface since chatId comes from useChatSession
 // interface ChatComponentProps {
@@ -446,6 +447,48 @@ export function Chat() {
   if (hydrated && chatId && !isChatsLoading && !currentChat) {
     return redirect("/")
   }
+
+  // Auto-save messages to Firestore
+  useEffect(() => {
+    if (!user?.id || !chatId || messages.length === 0) return
+
+    const timeoutId = setTimeout(async () => {
+      const lastMessage = messages[messages.length - 1]
+      
+      // Save the latest message to Firestore (only user and assistant messages)
+      if (lastMessage && lastMessage.id && (lastMessage.role === 'user' || lastMessage.role === 'assistant')) {
+        saveChatMessage(user.id, chatId, {
+          id: lastMessage.id,
+          content: lastMessage.content,
+          role: lastMessage.role,
+          model: selectedModel,
+          timestamp: new Date()
+        })
+      }
+
+      // Save the entire chat history periodically
+      if (messages.length % 3 === 0) { // Every 3 messages
+        const filteredMessages = messages
+          .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+          .map(msg => ({
+            id: msg.id,
+            content: msg.content,
+            role: msg.role as "user" | "assistant",
+            model: selectedModel,
+            timestamp: new Date()
+          }))
+
+        saveChatHistory(user.id, chatId, {
+          title: `Chat ${chatId}`,
+          model: selectedModel,
+          agent: currentAgent?.id,
+          messages: filteredMessages
+        })
+      }
+    }, 1000) // Debounce by 1 second
+
+    return () => clearTimeout(timeoutId)
+  }, [messages, user?.id, chatId, selectedModel, currentAgent?.id])
 
   return (
     <div

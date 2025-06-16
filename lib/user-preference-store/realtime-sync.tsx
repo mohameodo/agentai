@@ -37,10 +37,11 @@ export function useRealtimePreferenceSync() {
           })
         }
         
-        // If the user's preferred model changed, refresh the user data
+        // Log preferred model changes but don't refresh to avoid slowdown
         if (userData.preferred_model && userData.preferred_model !== user?.preferred_model) {
-          console.log("Preferred model changed on server, refreshing user data")
-          refreshUser()
+          console.log("Preferred model changed on server:", userData.preferred_model)
+          // Note: We don't call refreshUser() here to avoid performance issues
+          // The model will be synced through the normal update flow
         }
       }
     }, (error) => {

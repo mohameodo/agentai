@@ -15,6 +15,9 @@ import type { UserProfile } from "@/app/types/user"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
 import { LayoutClient } from "./layout-client"
+import { LoadingScreen } from "@/components/ui/loading-screen"
+import { AppLoadingProvider } from "@/app/components/providers/app-loading-provider"
+import { Suspense } from "react"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -260,24 +263,28 @@ export default async function RootLayout({
         <PWAInstaller />
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
-          <ChatSessionProvider>
-            <DataProviders>
-              <TooltipProvider delayDuration={200} skipDelayDuration={500}>
-                <ThemeProvider
-                  attribute="class"
-                  defaultTheme="light"
-                  enableSystem
-                  disableTransitionOnChange
-                >
-                  <ThemeBackground />
-                  <SidebarProvider defaultOpen>
-                    <Toaster position="top-center" />
-                    {children}
-                  </SidebarProvider>
-                </ThemeProvider>
-              </TooltipProvider>
-            </DataProviders>
-          </ChatSessionProvider>
+          <AppLoadingProvider>
+            <ChatSessionProvider>
+              <DataProviders>
+                <TooltipProvider delayDuration={200} skipDelayDuration={500}>
+                  <ThemeProvider
+                    attribute="class"
+                    defaultTheme="light"
+                    enableSystem
+                    disableTransitionOnChange
+                  >
+                    <ThemeBackground />
+                    <SidebarProvider defaultOpen>
+                      <Toaster position="top-center" />
+                      <Suspense fallback={<LoadingScreen />}>
+                        {children}
+                      </Suspense>
+                    </SidebarProvider>
+                  </ThemeProvider>
+                </TooltipProvider>
+              </DataProviders>
+            </ChatSessionProvider>
+          </AppLoadingProvider>
         </UserProvider>
       </body>
     </html>
