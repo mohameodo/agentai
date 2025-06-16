@@ -263,12 +263,12 @@ export default async function RootLayout({
         <PWAInstaller />
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
-          <RealtimePreferenceSync>
-            <ModelPreferenceSync>
-              <ChatsProvider userId={undefined}>
-                <ChatSessionProvider>
-                  <AgentProvider userId={undefined}>
-                    <UserPreferencesProvider userId={undefined}>
+          <UserPreferencesProvider userId={undefined}>
+            <RealtimePreferenceSync>
+              <ModelPreferenceSync>
+                <ChatsProvider userId={undefined}>
+                  <ChatSessionProvider>
+                    <AgentProvider userId={undefined}>
                       <TooltipProvider delayDuration={200} skipDelayDuration={500}>
                         <ThemeProvider
                           attribute="class"
@@ -283,12 +283,12 @@ export default async function RootLayout({
                           </SidebarProvider>
                         </ThemeProvider>
                       </TooltipProvider>
-                    </UserPreferencesProvider>
-                  </AgentProvider>
-                </ChatSessionProvider>
-              </ChatsProvider>
-            </ModelPreferenceSync>
-          </RealtimePreferenceSync>
+                    </AgentProvider>
+                  </ChatSessionProvider>
+                </ChatsProvider>
+              </ModelPreferenceSync>
+            </RealtimePreferenceSync>
+          </UserPreferencesProvider>
         </UserProvider>
       </body>
     </html>
