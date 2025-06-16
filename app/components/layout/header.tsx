@@ -64,7 +64,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
 
   const isLoggedIn = !!user && !user.anonymous
   const isCodeHatActive = pathname.startsWith('/codehat')
-  const isChatPage = pathname.startsWith('/c/') || pathname === '/'
+  const isChatPage = pathname.startsWith('/chats/') || pathname === '/'
 
   return (
     <header className="h-app-header pointer-events-none fixed top-0 right-0 left-0 z-50">

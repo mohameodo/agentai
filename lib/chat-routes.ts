@@ -8,7 +8,7 @@ export function useChatRoute() {
   const isCodeHat = pathname.startsWith('/codehat')
   
   const getChatRoute = (chatId: string) => {
-    return isCodeHat ? `/codehat/${chatId}` : `/c/${chatId}`
+    return isCodeHat ? `/codehat/${chatId}` : `/chats/${chatId}`
   }
   
   const getNewChatRoute = () => {

@@ -7,68 +7,16 @@ import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 
 /**
- * Hook for real-time model preference synchronization across devices
+ * Hook for model preference synchronization (REAL-TIME DISABLED)
+ * Disabled real-time listeners to prevent Firebase quota exhaustion
  */
 export function useModelPreferenceSync() {
   const { user, updateUser } = useUser()
-  const unsubscribeRef = useRef<(() => void) | null>(null)
 
-  useEffect(() => {
-    if (!isFirebaseEnabled || !user?.id) {
-      return
-    }
-
-    const db = getFirebaseFirestore()
-    if (!db) return
-
-    // Set up real-time listener for model preferences
-    const userRef = doc(db, "users", user.id)
-    
-    const unsubscribe = onSnapshot(userRef, (doc) => {
-      if (doc.exists()) {
-        const userData = doc.data()
-        
-        // Update local model preference if it changed on another device
-        if (userData.model_preference && userData.model_preference !== user.preferred_model) {
-          updateUser({ preferred_model: userData.model_preference })
-        }
-
-        // Update other preferences that might affect model behavior
-        if (userData.preferences) {
-          const relevantPrefs = {
-            temperature: userData.preferences.temperature,
-            max_tokens: userData.preferences.max_tokens,
-            streaming: userData.preferences.streaming,
-            system_prompt: userData.preferences.system_prompt,
-          }
-          
-          // Only update if values have actually changed
-          Object.entries(relevantPrefs).forEach(([key, value]) => {
-            if (value !== undefined && user.preferences?.[key] !== value) {
-              updateUser({ 
-                preferences: { 
-                  ...user.preferences, 
-                  [key]: value 
-                } 
-              })
-            }
-          })
-        }
-      }
-    }, (error) => {
-      console.error("Error listening to model preferences:", error)
-    })
-
-    unsubscribeRef.current = unsubscribe
-
-    return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-      }
-    }
-  }, [user?.id, user?.preferred_model, user?.preferences, updateUser])
-
-  // Function to update model preference and sync to Firebase
+  // Disabled real-time listener to prevent Firebase quota exhaustion
+  // Model preferences are now only synced when explicitly saved
+  
+  // Function to update model preference and sync to Firebase (one-way sync only)
   const updateModelPreference = async (modelId: string) => {
     if (!isFirebaseEnabled || !user?.id) return
 
@@ -131,7 +79,7 @@ export function useModelPreferenceSync() {
   return {
     updateModelPreference,
     updateModelParameters,
-    isConnected: !!unsubscribeRef.current
+    isConnected: false // No real-time connection to prevent quota exhaustion
   }
 }
 

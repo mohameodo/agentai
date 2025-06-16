@@ -11,7 +11,8 @@ import {
 } from "@/lib/firebase/data-persistence"
 
 /**
- * Provider that automatically saves all user data to Firestore
+ * Provider that saves essential user data to Firestore (NO ACTIVITY TRACKING)
+ * Disabled all activity tracking to prevent Firebase quota exhaustion
  */
 export function DataPersistenceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
@@ -19,29 +20,7 @@ export function DataPersistenceProvider({ children }: { children: React.ReactNod
   const lastPreferencesRef = useRef(preferences)
   const lastModelRef = useRef(user?.preferred_model)
 
-  // Save user session on mount
-  useEffect(() => {
-    if (user?.id) {
-      const sessionData = {
-        userAgent: navigator.userAgent,
-        deviceInfo: `${navigator.platform} - ${navigator.language}`,
-        location: window.location.href
-      }
-      
-      saveUserSession(user.id, sessionData)
-      
-      // Track page visit
-      saveUserActivity(user.id, {
-        type: "page_visit",
-        data: { 
-          path: window.location.pathname,
-          referrer: document.referrer 
-        }
-      })
-    }
-  }, [user?.id])
-
-  // Save model preference changes
+  // Only save model preference changes (essential for app functionality)
   useEffect(() => {
     if (user?.id && user.preferred_model && user.preferred_model !== lastModelRef.current) {
       console.log("Saving model preference change:", user.preferred_model)
@@ -50,7 +29,7 @@ export function DataPersistenceProvider({ children }: { children: React.ReactNod
     }
   }, [user?.id, user?.preferred_model])
 
-  // Save user preferences changes
+  // Only save user preferences changes (essential for app functionality)
   useEffect(() => {
     if (user?.id && preferences && preferences !== lastPreferencesRef.current) {
       console.log("Saving user preferences change")
@@ -59,69 +38,8 @@ export function DataPersistenceProvider({ children }: { children: React.ReactNod
     }
   }, [user?.id, preferences])
 
-  // Track user activity patterns
-  useEffect(() => {
-    if (!user?.id) return
-
-    const handleUserActivity = (event: string) => {
-      saveUserActivity(user.id!, {
-        type: "user_interaction",
-        data: { 
-          event,
-          path: window.location.pathname,
-          timestamp: new Date().toISOString()
-        }
-      })
-    }
-
-    // Track various user interactions
-    const handleClick = () => handleUserActivity("click")
-    const handleKeydown = () => handleUserActivity("keydown")
-    const handleScroll = () => handleUserActivity("scroll")
-
-    // Throttle activity tracking to avoid spam
-    let activityTimeout: NodeJS.Timeout
-    const throttledActivity = (eventType: string) => {
-      clearTimeout(activityTimeout)
-      activityTimeout = setTimeout(() => handleUserActivity(eventType), 1000)
-    }
-
-    const throttledClick = () => throttledActivity("click")
-    const throttledKeydown = () => throttledActivity("keydown")
-    const throttledScroll = () => throttledActivity("scroll")
-
-    document.addEventListener("click", throttledClick)
-    document.addEventListener("keydown", throttledKeydown)
-    window.addEventListener("scroll", throttledScroll)
-
-    return () => {
-      document.removeEventListener("click", throttledClick)
-      document.removeEventListener("keydown", throttledKeydown)
-      window.removeEventListener("scroll", throttledScroll)
-      clearTimeout(activityTimeout)
-    }
-  }, [user?.id])
-
-  // Track page navigation
-  useEffect(() => {
-    if (!user?.id) return
-
-    const handleBeforeUnload = () => {
-      saveUserActivity(user.id!, {
-        type: "page_leave",
-        data: { 
-          path: window.location.pathname,
-          timeSpent: Date.now() - (window as any).pageLoadTime
-        }
-      })
-    }
-
-    // Track page load time
-    ;(window as any).pageLoadTime = Date.now()
-
-    window.addEventListener("beforeunload", handleBeforeUnload)
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
-  }, [user?.id])
+  // Completely disabled all activity tracking to prevent Firebase quota exhaustion
+  // No session tracking, no user activity, no page visits - only essential data
 
   return <>{children}</>
 }

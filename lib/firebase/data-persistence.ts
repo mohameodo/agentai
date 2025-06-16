@@ -18,11 +18,13 @@ export async function saveUserActivity(userId: string, activity: {
   try {
     const activityRef = doc(db, "user_activities", userId)
     
+    // Use Date.now() instead of serverTimestamp() in arrayUnion
     await setDoc(activityRef, {
       activities: arrayUnion({
         ...activity,
-        timestamp: activity.timestamp || serverTimestamp()
-      })
+        timestamp: activity.timestamp || Date.now()
+      }),
+      updated_at: serverTimestamp()
     }, { merge: true })
     
     console.log("User activity saved:", activity.type)

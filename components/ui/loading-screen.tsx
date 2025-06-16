@@ -24,15 +24,25 @@ export function LoadingScreen({ className }: { className?: string }) {
   return (
     <div className={cn(
       "fixed inset-0 z-50 flex flex-col items-center justify-center",
-      "bg-white dark:bg-gray-900 text-black dark:text-white",
-      "backdrop-blur-sm",
+      "bg-white dark:bg-gray-900",
       className
     )}>
-      {/* Nexiloop animated text */}
-      <div className="nexiloop-loader mb-8" />
-      
-      {/* Animated loader */}
-      <div className="spinner-loader mb-6" />
+      {/* 3D Cube Animation */}
+      <div className="scene mb-8">
+        <div className="cube-wrapper">
+          <div className="cube">
+            <div className="cube-faces">
+              <div className="cube-face shadow"></div>
+              <div className="cube-face bottom"></div>
+              <div className="cube-face top"></div>
+              <div className="cube-face left"></div>
+              <div className="cube-face right"></div>
+              <div className="cube-face back"></div>
+              <div className="cube-face front"></div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       {/* Loading message with proper animation */}
       <AnimatePresence mode="wait">
@@ -49,190 +59,193 @@ export function LoadingScreen({ className }: { className?: string }) {
       </AnimatePresence>
 
       <style jsx>{`
-        /* Nexiloop animated text loader - high contrast for both modes */
-        .nexiloop-loader {
-          width: fit-content;
-          font-size: 2.5rem;
-          line-height: 1.5;
-          font-family: system-ui, sans-serif;
-          font-weight: bold;
-          text-transform: uppercase;
-          color: #000;
+        /* 3D Cube Animation - Theme Aware */
+        .scene {
           position: relative;
-          animation: nexiloop-anim 2s linear infinite;
+          z-index: 2;
+          height: 220px;
+          width: 220px;
+          display: grid;
+          place-items: center;
         }
 
-        /* Dark mode text color */
-        :global(.dark) .nexiloop-loader {
-          color: #fff;
+        .cube-wrapper {
+          transform-style: preserve-3d;
+          animation: bouncing 2s infinite;
         }
 
-        .nexiloop-loader:before {
-          content: "nexiloop ";
-          background: linear-gradient(
-            90deg,
-            #000 0%,
-            #3b82f6 25%,
-            #000 50%,
-            #3b82f6 75%,
-            #000 100%
-          );
-          background-size: 400% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: wave-colors 2s ease-in-out infinite;
+        .cube {
+          transform-style: preserve-3d;
+          transform: rotateX(45deg) rotateZ(45deg);
+          animation: rotation 2s infinite;
         }
 
-        /* Dark mode gradient */
-        :global(.dark) .nexiloop-loader:before {
-          background: linear-gradient(
-            90deg,
-            #fff 0%,
-            #60a5fa 25%,
-            #fff 50%,
-            #60a5fa 75%,
-            #fff 100%
-          );
-          background-size: 400% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        /* Fallback for browsers that don't support background-clip: text */
-        @supports not (background-clip: text) {
-          .nexiloop-loader:before {
-            -webkit-text-fill-color: #000;
-            color: #000;
-          }
-          
-          :global(.dark) .nexiloop-loader:before {
-            -webkit-text-fill-color: #fff;
-            color: #fff;
-          }
-        }
-
-        @keyframes wave-colors {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-
-        @keyframes nexiloop-anim {
-          0% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-          100% {
-            transform: translateY(0px);
-          }
-        }
-
-        /* Spinner loader - high contrast for both modes */
-        .spinner-loader {
+        .cube-faces {
+          transform-style: preserve-3d;
+          height: 80px;
           width: 80px;
-          aspect-ratio: 1;
           position: relative;
+          transform-origin: 0 0;
+          transform: translateX(0) translateY(0) translateZ(-40px);
         }
 
-        .spinner-loader::before {
-          content: '';
+        .cube-face {
           position: absolute;
           inset: 0;
-          background: 
-            radial-gradient(circle, #000 30%, transparent 31%) 0 0/20px 20px,
-            radial-gradient(circle, #000 30%, transparent 31%) 60px 0/20px 20px,
-            radial-gradient(circle, #000 30%, transparent 31%) 60px 60px/20px 20px,
-            radial-gradient(circle, #000 30%, transparent 31%) 0 60px/20px 20px,
-            radial-gradient(circle, #3b82f6 40%, transparent 41%) 30px 30px/20px 20px;
-          background-repeat: no-repeat;
-          animation: spinner-anim 1.2s infinite ease-in-out;
+          background: #000;
+          border: solid 1px #666;
         }
 
-        /* Dark mode spinner */
-        :global(.dark) .spinner-loader::before {
-          background: 
-            radial-gradient(circle, #fff 30%, transparent 31%) 0 0/20px 20px,
-            radial-gradient(circle, #fff 30%, transparent 31%) 60px 0/20px 20px,
-            radial-gradient(circle, #fff 30%, transparent 31%) 60px 60px/20px 20px,
-            radial-gradient(circle, #fff 30%, transparent 31%) 0 60px/20px 20px,
-            radial-gradient(circle, #60a5fa 40%, transparent 41%) 30px 30px/20px 20px;
-          background-repeat: no-repeat;
+        /* Dark mode cube colors */
+        :global(.dark) .cube-face {
+          background: #fff;
+          border: solid 1px #ccc;
         }
 
-        @keyframes spinner-anim {
-          0% { 
-            background-position: 0 0, 60px 0, 60px 60px, 0 60px, 30px 30px;
+        .cube-face.shadow {
+          transform: translateZ(-80px);
+          animation: bouncing-shadow 2s infinite;
+          opacity: 0.1;
+        }
+
+        .cube-face.top {
+          transform: translateZ(80px);
+        }
+
+        .cube-face.front {
+          transform-origin: 0 50%;
+          transform: rotateY(-90deg);
+        }
+
+        .cube-face.back {
+          transform-origin: 0 50%;
+          transform: rotateY(-90deg) translateZ(-80px);
+        }
+
+        .cube-face.right {
+          transform-origin: 50% 0;
+          transform: rotateX(-90deg) translateY(-80px);
+        }
+
+        .cube-face.left {
+          transform-origin: 50% 0;
+          transform: rotateX(-90deg) translateY(-80px) translateZ(80px);
+        }
+
+        @keyframes rotation {
+          0% {
+            transform: rotateX(45deg) rotateY(0) rotateZ(45deg);
+            animation-timing-function: cubic-bezier(0.17,0.84,0.44,1);
           }
-          25% { 
-            background-position: 60px 0, 60px 60px, 0 60px, 0 0, 30px 30px;
+          50% {
+            transform: rotateX(45deg) rotateY(0) rotateZ(225deg);
+            animation-timing-function: cubic-bezier(0.76,0.05,0.86,0.06);
           }
-          50% { 
-            background-position: 60px 60px, 0 60px, 0 0, 60px 0, 30px 30px;
-          }
-          75% { 
-            background-position: 0 60px, 0 0, 60px 0, 60px 60px, 30px 30px;
-          }
-          100% { 
-            background-position: 0 0, 60px 0, 60px 60px, 0 60px, 30px 30px;
+          100% {
+            transform: rotateX(45deg) rotateY(0) rotateZ(405deg);
+            animation-timing-function: cubic-bezier(0.17,0.84,0.44,1);
           }
         }
 
+        @keyframes bouncing {
+          0% {
+            transform: translateY(-40px);
+            animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+          }
+          45% {
+            transform: translateY(40px);
+            animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          100% {
+            transform: translateY(-40px);
+            animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+          }
+        }
+
+        @keyframes bouncing-shadow {
+          0% {
+            transform: translateZ(-80px) scale(1.3);
+            animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+            opacity: 0.05;
+          }
+          45% {
+            transform: translateZ(0);
+            animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0.3;
+          }
+          100% {
+            transform: translateZ(-80px) scale(1.3);
+            animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+            opacity: 0.05;
+          }
+        }
+
+        /* Mobile responsiveness */
         @media (max-width: 768px) {
-          .nexiloop-loader {
-            font-size: 1.75rem;
+          .scene {
+            height: 180px;
+            width: 180px;
           }
           
-          .spinner-loader {
+          .cube-faces {
+            height: 60px;
             width: 60px;
+            transform: translateX(0) translateY(0) translateZ(-30px);
           }
-
-          .spinner-loader::before {
-            background: 
-              radial-gradient(circle, #000 30%, transparent 31%) 0 0/15px 15px,
-              radial-gradient(circle, #000 30%, transparent 31%) 45px 0/15px 15px,
-              radial-gradient(circle, #000 30%, transparent 31%) 45px 45px/15px 15px,
-              radial-gradient(circle, #000 30%, transparent 31%) 0 45px/15px 15px,
-              radial-gradient(circle, #3b82f6 40%, transparent 41%) 22.5px 22.5px/15px 15px;
-            background-repeat: no-repeat;
+          
+          .cube-face.shadow {
+            transform: translateZ(-60px);
           }
-
-          :global(.dark) .spinner-loader::before {
-            background: 
-              radial-gradient(circle, #fff 30%, transparent 31%) 0 0/15px 15px,
-              radial-gradient(circle, #fff 30%, transparent 31%) 45px 0/15px 15px,
-              radial-gradient(circle, #fff 30%, transparent 31%) 45px 45px/15px 15px,
-              radial-gradient(circle, #fff 30%, transparent 31%) 0 45px/15px 15px,
-              radial-gradient(circle, #60a5fa 40%, transparent 41%) 22.5px 22.5px/15px 15px;
-            background-repeat: no-repeat;
+          
+          .cube-face.top {
+            transform: translateZ(60px);
           }
-
-          @keyframes spinner-anim {
-            0% { 
-              background-position: 0 0, 45px 0, 45px 45px, 0 45px, 22.5px 22.5px;
+          
+          .cube-face.back {
+            transform: rotateY(-90deg) translateZ(-60px);
+          }
+          
+          .cube-face.right {
+            transform: rotateX(-90deg) translateY(-60px);
+          }
+          
+          .cube-face.left {
+            transform: rotateX(-90deg) translateY(-60px) translateZ(60px);
+          }
+          
+          @keyframes bouncing {
+            0% {
+              transform: translateY(-30px);
+              animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
             }
-            25% { 
-              background-position: 45px 0, 45px 45px, 0 45px, 0 0, 22.5px 22.5px;
+            45% {
+              transform: translateY(30px);
+              animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
             }
-            50% { 
-              background-position: 45px 45px, 0 45px, 0 0, 45px 0, 22.5px 22.5px;
+            100% {
+              transform: translateY(-30px);
+              animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
             }
-            75% { 
-              background-position: 0 45px, 0 0, 45px 0, 45px 45px, 22.5px 22.5px;
+          }
+          
+          @keyframes bouncing-shadow {
+            0% {
+              transform: translateZ(-60px) scale(1.3);
+              animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+              opacity: 0.05;
             }
-            100% { 
-              background-position: 0 0, 45px 0, 45px 45px, 0 45px, 22.5px 22.5px;
+            45% {
+              transform: translateZ(0);
+              animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+              opacity: 0.3;
+            }
+            100% {
+              transform: translateZ(-60px) scale(1.3);
+              animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+              opacity: 0.05;
             }
           }
         }
-
-        /* Remove the unnecessary media query overrides */
       `}</style>
     </div>
   )
