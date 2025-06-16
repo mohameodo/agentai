@@ -15,11 +15,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Very permissive CSP - allows everything
-  response.headers.set(
-    "Content-Security-Policy",
-    `default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src *; connect-src *; media-src *; object-src *; child-src *; frame-src *; worker-src *; frame-ancestors *; form-action *; base-uri *;`
-  )
+  // Temporarily disable CSP completely to allow all Google APIs
+  // response.headers.set(
+  //   "Content-Security-Policy",
+  //   `default-src *; script-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline' data: blob:; img-src * data: blob:; font-src * data:; connect-src *; media-src * data: blob:; object-src *; child-src * data: blob:; frame-src *; worker-src * blob:; frame-ancestors *; form-action *; base-uri *;`
+  // )
 
   return response
 }
