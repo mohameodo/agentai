@@ -56,17 +56,9 @@ export async function updateChatTitleInDb(id: string, title: string) {
 }
 
 export async function deleteChatInDb(id: string) {
-  if (!isFirebaseEnabled) return
-  const db = getFirebaseFirestore()
-  if (!db) return
-
-  try {
-    const chatRef = doc(db, "chats", id)
-    await deleteDoc(chatRef)
-  } catch (error) {
-    console.error("Error deleting chat:", error)
-    throw error
-  }
+  // Chat deletion disabled to prevent accidental data loss and reduce Firebase writes
+  console.warn("Chat deletion disabled to prevent Firebase quota exhaustion")
+  return
 }
 
 export async function getAllUserChatsInDb(userId: string): Promise<Chats[]> {
@@ -133,12 +125,9 @@ export async function updateChatTitle(
 }
 
 export async function deleteChat(id: string): Promise<void> {
-  await deleteChatInDb(id)
-  const all = await getCachedChats()
-  await writeToIndexedDB(
-    "chats",
-    (all as Chats[]).filter((c) => c.id !== id)
-  )
+  // Chat deletion disabled to prevent accidental data loss and reduce Firebase writes
+  console.warn("Chat deletion disabled to prevent Firebase quota exhaustion")
+  return
 }
 
 export async function getChat(chatId: string): Promise<Chat | null> {

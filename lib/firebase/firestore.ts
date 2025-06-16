@@ -168,23 +168,9 @@ export async function updateDocument<T>(collectionName: string, documentId: stri
 }
 
 export async function deleteDocument(collectionName: string, documentId: string) {
-  if (!isFirebaseEnabled) {
-    return false
-  }
-
-  const db = getFirebaseFirestore()
-  if (!db) {
-    return false
-  }
-
-  try {
-    const docRef = doc(db, collectionName, documentId)
-    await deleteDoc(docRef)
-    return true
-  } catch (error) {
-    console.error(`Error deleting document from ${collectionName}:`, error)
-    return false
-  }
+  // Document deletion disabled to prevent accidental data loss and reduce Firebase writes
+  console.warn(`Document deletion disabled for ${collectionName}/${documentId} to prevent Firebase quota exhaustion`)
+  return false
 }
 
 export async function queryDocuments<T>(
@@ -241,25 +227,9 @@ export function subscribeToDocument<T>(
   documentId: string,
   callback: (data: T | null) => void
 ) {
-  if (!isFirebaseEnabled) {
-    callback(null)
-    return () => {}
-  }
-
-  const db = getFirebaseFirestore()
-  if (!db) {
-    callback(null)
-    return () => {}
-  }
-
-  const docRef = doc(db, collectionName, documentId)
-  return onSnapshot(docRef, (doc) => {
-    if (doc.exists()) {
-      callback({ id: doc.id, ...doc.data() } as T)
-    } else {
-      callback(null)
-    }
-  })
+  // Real-time sync disabled to prevent Firebase quota exhaustion
+  callback(null)
+  return () => {}
 }
 
 export function subscribeToCollection<T>(
@@ -269,41 +239,7 @@ export function subscribeToCollection<T>(
   orderByField?: string,
   orderDirection: 'asc' | 'desc' = 'asc'
 ) {
-  if (!isFirebaseEnabled) {
-    callback([])
-    return () => {}
-  }
-
-  const db = getFirebaseFirestore()
-  if (!db) {
-    callback([])
-    return () => {}
-  }
-
-  try {
-    let q = collection(db, collectionName)
-    let queryRef: any = q
-
-    // Apply filters
-    filters.forEach(filter => {
-      queryRef = query(queryRef, where(filter.field, filter.operator, filter.value))
-    })
-
-    // Apply ordering
-    if (orderByField) {
-      queryRef = query(queryRef, orderBy(orderByField, orderDirection))
-    }
-
-    return onSnapshot(queryRef, (querySnapshot: any) => {
-      const documents: T[] = []
-      querySnapshot.forEach((doc: any) => {
-        documents.push({ id: doc.id, ...(doc.data() as any) } as T)
-      })
-      callback(documents)
-    })
-  } catch (error) {
-    console.error(`Error subscribing to collection ${collectionName}:`, error)
-    callback([])
-    return () => {}
-  }
+  // Real-time sync disabled to prevent Firebase quota exhaustion
+  callback([])
+  return () => {}
 }

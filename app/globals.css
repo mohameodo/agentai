@@ -156,14 +156,14 @@ code {
   font-variation-settings: var(--default-mono-font-variation-settings);
 }
 
-/* New Loader Animation */
+/* New Loader Animation - Made smaller */
 .loader {
-  width: 60px;
+  width: 30px; /* Reduced from 60px */
   aspect-ratio: 4;
   --c: currentColor 90%, #0000;
-  background: radial-gradient(circle closest-side at left 6px top 50%, var(--c)),
+  background: radial-gradient(circle closest-side at left 3px top 50%, var(--c)), /* Reduced from 6px to 3px */
               radial-gradient(circle closest-side, var(--c)),
-              radial-gradient(circle closest-side at right 6px top 50%, var(--c));
+              radial-gradient(circle closest-side at right 3px top 50%, var(--c)); /* Reduced from 6px to 3px */
   background-size: 100% 100%;
   background-repeat: no-repeat;
   animation: l4 1s infinite alternate;
@@ -171,7 +171,7 @@ code {
 
 @keyframes l4 {
   to {
-    width: 25px;
+    width: 12px; /* Reduced from 25px */
     aspect-ratio: 1;
   }
 }

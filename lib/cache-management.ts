@@ -1,64 +1,6 @@
 /**
- * Cache management utilities to handle cache invalidation for user-specific data
+ * Cache management utilities - cache deletion functions removed to prevent Firebase quota exhaustion
  */
-
-/**
- * Clears browser caches for user-specific data
- */
-export async function clearUserDataCache() {
-  if (typeof window === 'undefined' || !('caches' in window)) {
-    return
-  }
-
-  try {
-    const cacheNames = await caches.keys()
-    
-    // Clear dynamic cache that might contain user data
-    for (const cacheName of cacheNames) {
-      if (cacheName.includes('dynamic')) {
-        await caches.delete(cacheName)
-        console.log(`Cleared cache: ${cacheName}`)
-      }
-    }
-  } catch (error) {
-    console.warn('Failed to clear user data cache:', error)
-  }
-}
-
-/**
- * Forces a hard refresh of user preferences
- */
-export function forceUserDataRefresh() {
-  // Clear local storage items related to user data
-  const keysToRemove = [
-    'user-preferences',
-    'preferred-layout',
-    'guest-user-id',
-    'auth-token'
-  ]
-  
-  keysToRemove.forEach(key => {
-    try {
-      localStorage.removeItem(key)
-      sessionStorage.removeItem(key)
-    } catch (error) {
-      console.warn(`Failed to remove ${key} from storage:`, error)
-    }
-  })
-  
-  // Clear user data cache
-  clearUserDataCache()
-}
-
-/**
- * Triggers a soft reload to refresh cached content
- */
-export function triggerSoftReload() {
-  // Force reload without full page refresh
-  if (typeof window !== 'undefined') {
-    window.location.reload()
-  }
-}
 
 /**
  * Broadcasts user data changes to other tabs

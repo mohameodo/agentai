@@ -103,16 +103,13 @@ export function ChatsProvider({
     currentChatId?: string,
     redirect?: () => void
   ) => {
-    const prev = [...chats]
-    setChats((prev) => prev.filter((c) => c.id !== id))
-
-    try {
-      await deleteChatFromDb(id)
-      if (id === currentChatId && redirect) redirect()
-    } catch {
-      setChats(prev)
-      toast({ title: "Failed to delete chat", status: "error" })
-    }
+    // Chat deletion disabled to prevent accidental data loss and reduce Firebase writes
+    toast({ 
+      title: "Chat deletion disabled", 
+      description: "Chat deletion is temporarily disabled to prevent quota exhaustion",
+      status: "info" 
+    })
+    return
   }
 
   const createNewChat = async (

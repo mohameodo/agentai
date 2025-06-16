@@ -33,20 +33,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating...')
   
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((name) => {
-          if (name !== CACHE_NAME && name !== STATIC_CACHE_NAME) {
-            console.log('Deleting old cache:', name)
-            return caches.delete(name)
-          }
-        })
-      )
-    }).then(() => {
-      return self.clients.claim()
-    })
-  )
+  event.waitUntil(self.clients.claim())
 })
 
 self.addEventListener('fetch', (event) => {

@@ -519,15 +519,7 @@ export function Chat() {
               },
             }}
           >
-            {user?.display_name && hydrated && (
-              <p className="mb-2 text-center text-md text-muted-foreground">
-                Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {user.display_name.split(' ')[0]}
-              </p>
-            )}
-            <h1 className="mb-6 text-center text-3xl font-medium tracking-tight">
-How can I help you today?
-
-            </h1>
+            {/* Onboarding message removed to prevent showing after user starts chatting */}
           </motion.div>
         ) : (
           <Conversation

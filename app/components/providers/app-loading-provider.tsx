@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useUser } from "@/lib/user-store/provider"
 import { LoadingScreen } from "@/components/ui/loading-screen"
+import { usePathname } from "next/navigation"
 
 /**
  * Provider that shows loading screen while essential data is being loaded
@@ -11,8 +12,20 @@ export function AppLoadingProvider({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(true)
   const [loadingStage, setLoadingStage] = useState("Initializing...")
   const { user, isLoading: userLoading } = useUser()
+  const pathname = usePathname()
+
+  // Skip loading screen for chat pages
+  const shouldSkipLoading = pathname?.startsWith('/chats/') || 
+                           pathname?.startsWith('/c/') || 
+                           pathname === '/chats'
 
   useEffect(() => {
+    // Skip loading screen for chat pages
+    if (shouldSkipLoading) {
+      setIsLoading(false)
+      return
+    }
+
     const loadApp = async () => {
       try {
         // Stage 1: Wait for user auth
@@ -50,7 +63,7 @@ export function AppLoadingProvider({ children }: { children: React.ReactNode }) 
     if (!userLoading) {
       loadApp()
     }
-  }, [user?.id, userLoading])
+  }, [user?.id, userLoading, shouldSkipLoading])
 
   if (isLoading) {
     return <LoadingScreen />

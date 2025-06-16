@@ -2,7 +2,7 @@ import { getFirebaseFirestore } from "@/lib/firebase/client" // Changed import
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 import type { Message as MessageAISDK } from "ai"
 import { readFromIndexedDB, writeToIndexedDB } from "../persist"
-import { collection, query, where, getDocs, orderBy, addDoc, writeBatch, deleteDoc, doc, Timestamp } from "firebase/firestore"; // Added Firestore imports
+import { collection, query, where, getDocs, orderBy, addDoc, writeBatch, doc, Timestamp } from "firebase/firestore";
 
 export async function getMessagesFromDb(
   chatId: string
@@ -84,22 +84,9 @@ async function insertMessagesToDb(chatId: string, messages: MessageAISDK[]) {
 }
 
 async function deleteMessagesFromDb(chatId: string) {
-  if (!isFirebaseEnabled) return;
-  const db = getFirebaseFirestore()
-  if (!db) return
-
-  try {
-    const messagesRef = collection(db, "messages")
-    const q = query(messagesRef, where("chat_id", "==", chatId))
-    const querySnapshot = await getDocs(q)
-    const batch = writeBatch(db)
-    querySnapshot.forEach((doc) => {
-      batch.delete(doc.ref)
-    })
-    await batch.commit()
-  } catch (error) {
-    console.error("Failed to clear messages from database:", error)
-  }
+  // Message deletion disabled to prevent accidental data loss and reduce Firebase writes
+  console.warn("Message deletion disabled to prevent Firebase quota exhaustion")
+  return
 }
 
 type ChatMessageEntry = {
@@ -150,6 +137,7 @@ export async function clearMessagesCache(chatId: string): Promise<void> {
 }
 
 export async function clearMessagesForChat(chatId: string): Promise<void> {
-  await deleteMessagesFromDb(chatId)
-  await clearMessagesCache(chatId)
+  // Message deletion disabled to prevent accidental data loss and reduce Firebase writes
+  console.warn("Message clearing disabled to prevent Firebase quota exhaustion")
+  return
 }

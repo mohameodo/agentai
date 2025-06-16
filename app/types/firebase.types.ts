@@ -17,6 +17,7 @@ export interface FirebaseUser {
   daily_pro_reset?: Timestamp
   last_active_at?: Timestamp
   model_preference?: string
+  preferred_model?: string
   preferences?: {
     theme?: string
     language?: string

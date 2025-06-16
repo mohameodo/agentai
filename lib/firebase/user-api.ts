@@ -45,7 +45,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     daily_pro_message_count: userProfile?.daily_pro_message_count || 0,
     daily_message_count: userProfile?.daily_pro_message_count || 0,
     message_count: 0,
-    preferred_model: userProfile?.model_preference,
+    preferred_model: userProfile?.preferred_model || userProfile?.model_preference,
     preferences: userProfile?.preferences || {},
     system_prompt: userProfile?.system_prompt,
     created_at: userProfile?.created_at?.toDate?.() || new Date(),

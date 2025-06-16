@@ -50,7 +50,7 @@ export function ThinkingAnimation({ isVisible, modelId }: ThinkingAnimationProps
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.3 }}
-        className="flex items-center gap-1.5 px-3 py-2 bg-muted/50 rounded-lg border border-border/50 mb-2"
+        className="flex items-center gap-1 px-2 py-1.5 bg-muted/50 rounded-lg border border-border/50 mb-2"
       >
         <motion.div
           animate={{ 
@@ -63,7 +63,7 @@ export function ThinkingAnimation({ isVisible, modelId }: ThinkingAnimationProps
           }}
           className={`${currentState.color} flex-shrink-0`}
         >
-          <Icon size={14} />
+          <Icon size={12} />
         </motion.div>
         
         <motion.div
@@ -74,13 +74,13 @@ export function ThinkingAnimation({ isVisible, modelId }: ThinkingAnimationProps
           transition={{ duration: 0.5 }}
           className="flex-1"
         >
-          <p className="text-[10px] text-muted-foreground font-medium">
+          <p className="text-[9px] text-muted-foreground font-medium">
             {currentState.text}
           </p>
           
-          {/* New animated loader - even smaller */}
+          {/* Animated loader - made even smaller */}
           <div className="mt-1">
-            <div className="loader opacity-50 scale-50"></div>
+            <div className="loader opacity-40 scale-[0.3]"></div>
           </div>
         </motion.div>
       </motion.div>

@@ -1,70 +1,57 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read and update their own profile and preferences
+    // Users - Very permissive for authenticated users
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // Allow real-time updates to preferences and model settings
-      allow update: if request.auth != null && 
-                   request.auth.uid == userId &&
-                   (request.resource.data.keys().hasOnly(['preferences', 'model_preference', 'updated_at']) ||
-                    request.resource.data.keys().hasOnly(['preferences', 'updated_at']) ||
-                    request.resource.data.keys().hasOnly(['model_preference', 'updated_at']));
+      allow read, write, create, update, delete: if request.auth != null && request.auth.uid == userId;
+      // Allow more fields to be updated
+      allow update: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Agents - More permissive for authenticated users
+    // Agents - Very permissive
     match /agents/{agentId} {
-      // Anyone can read public or curated agents (including unauthenticated users)
+      // Anyone can read public agents (including unauthenticated users)
       allow read: if resource.data.is_public == true || 
                      resource.data.is_curated == true ||
                      resource.data.creator_id == "system";
-      // Authenticated users can read ANY agent and do most operations
-      allow read, create, update, delete: if request.auth != null;
+      // Authenticated users can do anything with agents
+      allow read, write, create, update, delete: if request.auth != null;
     }
     
-    // Chats - authenticated users have full access to their own chats
+    // Chats - Very permissive for authenticated users
     match /chats/{chatId} {
-      // Authenticated users can do anything with their own chats
-      allow read, write, create, update, delete: if request.auth != null && 
-                   (resource.data.user_id == request.auth.uid || 
-                    request.resource.data.user_id == request.auth.uid);
-      
-      // Allow real-time updates to chat model and preferences
-      allow update: if request.auth != null && 
-                   request.auth.uid == resource.data.user_id &&
-                   (request.resource.data.keys().hasOnly(['model', 'updated_at']) ||
-                    request.resource.data.keys().hasOnly(['preferences', 'updated_at']));
+      // Authenticated users can do anything with any chat they have access to
+      allow read, write, create, update, delete: if request.auth != null;
     }
     
-    // Messages - authenticated users have full access to their chat messages
+    // Messages - Very permissive for authenticated users
     match /messages/{messageId} {
       allow read, write, create, update, delete: if request.auth != null;
     }
     
-    // Chat attachments - authenticated users have full access
+    // Chat attachments - Very permissive for authenticated users
     match /chat_attachments/{attachmentId} {
       allow read, write, create, update, delete: if request.auth != null;
     }
     
-    // User keys - users can only access their own API keys
+    // User keys - Very permissive for authenticated users
     match /user_keys/{keyId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.user_id;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
+      allow read, write, create, update, delete: if request.auth != null;
     }
     
-    // Feedback - users can create feedback with their own user_id
+    // Feedback - Very permissive for authenticated users
     match /feedback/{feedbackId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
-      // Admin-only read access (you'd need to implement admin claims)
-      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow read, write, create, update, delete: if request.auth != null;
     }
     
-    // User preferences - real-time sync collection (optional separate collection)
+    // User preferences - Very permissive for authenticated users
     match /user_preferences/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read, write, create, update, delete: if request.auth != null;
+    }
+    
+    // Allow authenticated users access to any collection
+    match /{document=**} {
+      allow read, write, create, update, delete: if request.auth != null;
     }
   }
 }

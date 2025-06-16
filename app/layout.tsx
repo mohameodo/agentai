@@ -250,13 +250,6 @@ export default async function RootLayout({
           }}
         />
       </head>
-      {!isDev ? (
-        <Script
-          async
-          src="https://cloud.umami.is/script.js"
-          data-website-id="c53ba79c-39f3-406e-a57e-5c732df61710"
-        />
-      ) : null}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -269,7 +262,7 @@ export default async function RootLayout({
                 <TooltipProvider delayDuration={200} skipDelayDuration={500}>
                   <ThemeProvider
                     attribute="class"
-                    defaultTheme="light"
+                    defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
                   >
