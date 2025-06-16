@@ -40,7 +40,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
       console.log("Syncing model selection with user preference:", user.preferred_model)
       setSelectedModelId(user.preferred_model)
     }
-  }, [user?.preferred_model, selectedModelId])
+  }, [user?.preferred_model]) // Remove selectedModelId from dependencies to prevent loop
 
   const handleModelSelection = async (value: string) => {
     try {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { motion } from "motion/react"
+import { motion, AnimatePresence } from "motion/react"
 import { cn } from "@/lib/utils"
 
 const loadingMessages = [
@@ -24,8 +24,8 @@ export function LoadingScreen({ className }: { className?: string }) {
   return (
     <div className={cn(
       "fixed inset-0 z-50 flex flex-col items-center justify-center",
-      "bg-background text-foreground",
-      "backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95",
+      "bg-white dark:bg-gray-900 text-black dark:text-white",
+      "backdrop-blur-sm",
       className
     )}>
       {/* Nexiloop animated text */}
@@ -34,20 +34,22 @@ export function LoadingScreen({ className }: { className?: string }) {
       {/* Animated loader */}
       <div className="spinner-loader mb-6" />
       
-      {/* Loading message */}
-      <motion.p 
-        key={messageIndex}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.5 }}
-        className="text-lg font-semibold text-muted-foreground text-center"
-      >
-        {loadingMessages[messageIndex]}
-      </motion.p>
+      {/* Loading message with proper animation */}
+      <AnimatePresence mode="wait">
+        <motion.p 
+          key={messageIndex}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+          className="text-lg font-semibold text-gray-600 dark:text-gray-300 text-center"
+        >
+          {loadingMessages[messageIndex]}
+        </motion.p>
+      </AnimatePresence>
 
       <style jsx>{`
-        /* Nexiloop animated text loader - visible in both light and dark modes */
+        /* Nexiloop animated text loader - high contrast for both modes */
         .nexiloop-loader {
           width: fit-content;
           font-size: 2.5rem;
@@ -55,20 +57,25 @@ export function LoadingScreen({ className }: { className?: string }) {
           font-family: system-ui, sans-serif;
           font-weight: bold;
           text-transform: uppercase;
-          color: hsl(var(--foreground));
+          color: #000;
           position: relative;
           animation: nexiloop-anim 2s linear infinite;
+        }
+
+        /* Dark mode text color */
+        :global(.dark) .nexiloop-loader {
+          color: #fff;
         }
 
         .nexiloop-loader:before {
           content: "nexiloop ";
           background: linear-gradient(
             90deg,
-            hsl(var(--foreground)) 0%,
-            hsl(var(--primary)) 25%,
-            hsl(var(--foreground)) 50%,
-            hsl(var(--primary)) 75%,
-            hsl(var(--foreground)) 100%
+            #000 0%,
+            #3b82f6 25%,
+            #000 50%,
+            #3b82f6 75%,
+            #000 100%
           );
           background-size: 400% 100%;
           -webkit-background-clip: text;
@@ -77,11 +84,32 @@ export function LoadingScreen({ className }: { className?: string }) {
           animation: wave-colors 2s ease-in-out infinite;
         }
 
+        /* Dark mode gradient */
+        :global(.dark) .nexiloop-loader:before {
+          background: linear-gradient(
+            90deg,
+            #fff 0%,
+            #60a5fa 25%,
+            #fff 50%,
+            #60a5fa 75%,
+            #fff 100%
+          );
+          background-size: 400% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
         /* Fallback for browsers that don't support background-clip: text */
         @supports not (background-clip: text) {
           .nexiloop-loader:before {
-            -webkit-text-fill-color: hsl(var(--foreground));
-            color: hsl(var(--foreground));
+            -webkit-text-fill-color: #000;
+            color: #000;
+          }
+          
+          :global(.dark) .nexiloop-loader:before {
+            -webkit-text-fill-color: #fff;
+            color: #fff;
           }
         }
 
@@ -106,7 +134,7 @@ export function LoadingScreen({ className }: { className?: string }) {
           }
         }
 
-        /* Spinner loader without blur - theme aware */
+        /* Spinner loader - high contrast for both modes */
         .spinner-loader {
           width: 80px;
           aspect-ratio: 1;
@@ -118,13 +146,24 @@ export function LoadingScreen({ className }: { className?: string }) {
           position: absolute;
           inset: 0;
           background: 
-            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 0 0/20px 20px,
-            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 60px 0/20px 20px,
-            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 60px 60px/20px 20px,
-            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 0 60px/20px 20px,
-            radial-gradient(circle, hsl(var(--primary)) 40%, transparent 41%) 30px 30px/20px 20px;
+            radial-gradient(circle, #000 30%, transparent 31%) 0 0/20px 20px,
+            radial-gradient(circle, #000 30%, transparent 31%) 60px 0/20px 20px,
+            radial-gradient(circle, #000 30%, transparent 31%) 60px 60px/20px 20px,
+            radial-gradient(circle, #000 30%, transparent 31%) 0 60px/20px 20px,
+            radial-gradient(circle, #3b82f6 40%, transparent 41%) 30px 30px/20px 20px;
           background-repeat: no-repeat;
           animation: spinner-anim 1.2s infinite ease-in-out;
+        }
+
+        /* Dark mode spinner */
+        :global(.dark) .spinner-loader::before {
+          background: 
+            radial-gradient(circle, #fff 30%, transparent 31%) 0 0/20px 20px,
+            radial-gradient(circle, #fff 30%, transparent 31%) 60px 0/20px 20px,
+            radial-gradient(circle, #fff 30%, transparent 31%) 60px 60px/20px 20px,
+            radial-gradient(circle, #fff 30%, transparent 31%) 0 60px/20px 20px,
+            radial-gradient(circle, #60a5fa 40%, transparent 41%) 30px 30px/20px 20px;
+          background-repeat: no-repeat;
         }
 
         @keyframes spinner-anim {
@@ -156,11 +195,21 @@ export function LoadingScreen({ className }: { className?: string }) {
 
           .spinner-loader::before {
             background: 
-              radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 0 0/15px 15px,
-              radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 45px 0/15px 15px,
-              radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 45px 45px/15px 15px,
-              radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 0 45px/15px 15px,
-              radial-gradient(circle, hsl(var(--primary)) 40%, transparent 41%) 22.5px 22.5px/15px 15px;
+              radial-gradient(circle, #000 30%, transparent 31%) 0 0/15px 15px,
+              radial-gradient(circle, #000 30%, transparent 31%) 45px 0/15px 15px,
+              radial-gradient(circle, #000 30%, transparent 31%) 45px 45px/15px 15px,
+              radial-gradient(circle, #000 30%, transparent 31%) 0 45px/15px 15px,
+              radial-gradient(circle, #3b82f6 40%, transparent 41%) 22.5px 22.5px/15px 15px;
+            background-repeat: no-repeat;
+          }
+
+          :global(.dark) .spinner-loader::before {
+            background: 
+              radial-gradient(circle, #fff 30%, transparent 31%) 0 0/15px 15px,
+              radial-gradient(circle, #fff 30%, transparent 31%) 45px 0/15px 15px,
+              radial-gradient(circle, #fff 30%, transparent 31%) 45px 45px/15px 15px,
+              radial-gradient(circle, #fff 30%, transparent 31%) 0 45px/15px 15px,
+              radial-gradient(circle, #60a5fa 40%, transparent 41%) 22.5px 22.5px/15px 15px;
             background-repeat: no-repeat;
           }
 
@@ -183,21 +232,7 @@ export function LoadingScreen({ className }: { className?: string }) {
           }
         }
 
-        /* Dark mode specific enhancements */
-        @media (prefers-color-scheme: dark) {
-          .nexiloop-loader {
-            /* Enhance visibility in dark mode */
-            filter: brightness(1.1);
-          }
-        }
-
-        /* Light mode specific enhancements */
-        @media (prefers-color-scheme: light) {
-          .nexiloop-loader {
-            /* Ensure visibility in light mode */
-            filter: contrast(1.2);
-          }
-        }
+        /* Remove the unnecessary media query overrides */
       `}</style>
     </div>
   )

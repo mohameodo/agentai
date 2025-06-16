@@ -234,7 +234,7 @@ export function Chat() {
       console.log("Syncing chat selected model with preference:", preferredModel)
       setSelectedModel(preferredModel)
     }
-  }, [currentChat?.model, user?.preferred_model])
+  }, [currentChat?.model, user?.preferred_model]) // Remove selectedModel from dependencies to prevent loop
 
   // handle errors
   useEffect(() => {
