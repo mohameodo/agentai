@@ -187,6 +187,32 @@ export function UserPreferencesProvider({
 export function useUserPreferences() {
   const context = useContext(UserPreferencesContext)
   if (context === undefined) {
+    // During static generation, the context might not be available
+    // Provide a fallback with default values to prevent build errors
+    if (typeof window === 'undefined') {
+      console.debug("UserPreferencesProvider context not available during SSR/static generation, using defaults")
+      return {
+        preferences: {
+          layout: "fullscreen" as LayoutType,
+          promptSuggestions: true,
+          showToolInvocations: true,
+          showConversationPreviews: true,
+          defaultImageModel: "@cf/lykon/dreamshaper-8-lcm",
+          backgroundRemovalEnabled: false,
+          videoStreamingEnabled: true,
+        },
+        setLayout: () => {},
+        setPromptSuggestions: () => {},
+        setShowToolInvocations: () => {},
+        setShowConversationPreviews: () => {},
+        setDefaultImageModel: () => {},
+        setBackgroundRemovalEnabled: () => {},
+        setVideoStreamingEnabled: () => {},
+        updatePreference: () => {},
+        syncToFirebase: async () => {},
+      }
+    }
+    
     throw new Error(
       "useUserPreferences must be used within a UserPreferencesProvider"
     )
