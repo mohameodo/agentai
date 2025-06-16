@@ -3,12 +3,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { UsersThree } from "@phosphor-icons/react"
 import Link from "next/link"
 
 export function AgentLink() {
-  if (!isSupabaseEnabled) {
+  if (!isFirebaseEnabled) {
     return null
   }
 

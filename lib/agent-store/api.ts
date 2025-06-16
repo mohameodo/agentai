@@ -1,41 +1,57 @@
 import { Agent } from "@/app/types/agent"
-import { createClient } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { CURATED_AGENTS_SLUGS } from "../config"
+import { collection, query as firebaseQuery, where, getDocs, doc, getDoc } from "firebase/firestore"
 
 export async function fetchCuratedAgentsFromDb(): Promise<Agent[] | null> {
-  const supabase = createClient()
-  if (!supabase) return null
+  if (!isFirebaseEnabled) return null
+  const db = getFirebaseFirestore()
+  if (!db) return null
 
-  const { data, error } = await supabase
-    .from("agents")
-    .select("*")
-    .in("slug", CURATED_AGENTS_SLUGS)
-
-  if (error) {
+  try {
+    const agentsRef = collection(db, "agents")
+    const q = firebaseQuery(agentsRef, where("slug", "in", CURATED_AGENTS_SLUGS))
+    const querySnapshot = await getDocs(q)
+    const agents: Agent[] = []
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      agents.push({
+        id: doc.id,
+        ...data,
+      } as Agent)
+    })
+    return agents
+  } catch (error) {
     console.error("Error fetching curated agents:", error)
     return null
   }
-
-  return data
 }
 
 export async function fetchUserAgentsFromDb(
   userId: string
 ): Promise<Agent[] | null> {
-  const supabase = createClient()
-  if (!supabase) return null
+  if (!isFirebaseEnabled) return null
+  const db = getFirebaseFirestore()
+  if (!db) return null
 
-  const { data, error } = await supabase
-    .from("agents")
-    .select("*")
-    .eq("creator_id", userId)
-
-  if (error) {
+  try {
+    const agentsRef = collection(db, "agents")
+    const q = firebaseQuery(agentsRef, where("creator_id", "==", userId))
+    const querySnapshot = await getDocs(q)
+    const agents: Agent[] = []
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      agents.push({
+        id: doc.id,
+        ...data,
+      } as Agent)
+    })
+    return agents
+  } catch (error) {
     console.error("Error fetching user agents:", error)
     return null
   }
-
-  return data
 }
 
 export async function fetchAgentBySlugOrId({
@@ -45,25 +61,38 @@ export async function fetchAgentBySlugOrId({
   slug?: string
   id?: string | null
 }): Promise<Agent | null> {
-  const supabase = createClient()
-  if (!supabase) return null
+  if (!isFirebaseEnabled) return null
+  const db = getFirebaseFirestore()
+  if (!db) return null
 
-  let query = supabase.from("agents").select("*")
-
-  if (slug) {
-    query = query.eq("slug", slug)
-  } else if (id) {
-    query = query.eq("id", id)
-  } else {
+  try {
+    if (id) {
+      const agentRef = doc(db, "agents", id)
+      const agentDoc = await getDoc(agentRef)
+      if (agentDoc.exists()) {
+        return {
+          id: agentDoc.id,
+          ...agentDoc.data(),
+        } as Agent
+      }
+    }
+    
+    if (slug) {
+      const agentsRef = collection(db, "agents")
+      const q = firebaseQuery(agentsRef, where("slug", "==", slug))
+      const querySnapshot = await getDocs(q)
+      if (!querySnapshot.empty) {
+        const docData = querySnapshot.docs[0]
+        return {
+          id: docData.id,
+          ...docData.data(),
+        } as Agent
+      }
+    }
+    
     return null
-  }
-
-  const { data, error } = await query.single()
-
-  if (error || !data) {
+  } catch (error) {
     console.error("Error fetching agent:", error)
     return null
   }
-
-  return data
 }

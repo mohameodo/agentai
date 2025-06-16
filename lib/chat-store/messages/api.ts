@@ -1,78 +1,103 @@
-import { createClient } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client" // Changed import
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 import type { Message as MessageAISDK } from "ai"
 import { readFromIndexedDB, writeToIndexedDB } from "../persist"
+import { collection, query, where, getDocs, orderBy, addDoc, writeBatch, deleteDoc, doc, Timestamp } from "firebase/firestore"; // Added Firestore imports
 
 export async function getMessagesFromDb(
   chatId: string
 ): Promise<MessageAISDK[]> {
-  // fallback to local cache only
   if (!isFirebaseEnabled) {
     const cached = await getCachedMessages(chatId)
     return cached
   }
 
-  const supabase = createClient()
-  if (!supabase) return []
+  const db = getFirebaseFirestore()
+  if (!db) return []
 
-  const { data, error } = await supabase
-    .from("messages")
-    .select("id, content, role, experimental_attachments, created_at, parts")
-    .eq("chat_id", chatId)
-    .order("created_at", { ascending: true })
-
-  if (!data || error) {
+  try {
+    const messagesRef = collection(db, "messages")
+    const q = query(messagesRef, where("chat_id", "==", chatId), orderBy("created_at", "asc"))
+    const querySnapshot = await getDocs(q)
+    const messages: MessageAISDK[] = []
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      messages.push({
+        id: doc.id,
+        content: data.content ?? "",
+        role: data.role as MessageAISDK['role'],
+        createdAt: (data.created_at as Timestamp)?.toDate() || new Date(),
+        experimental_attachments: data.experimental_attachments,
+        parts: data.parts,
+      } as MessageAISDK)
+    })
+    return messages
+  } catch (error) {
     console.error("Failed to fetch messages:", error)
     return []
   }
-
-  return data.map((message) => ({
-    ...message,
-    id: String(message.id),
-    content: message.content ?? "",
-    createdAt: new Date(message.created_at || ""),
-    parts: (message?.parts as MessageAISDK["parts"]) || undefined,
-  }))
 }
 
 async function insertMessageToDb(chatId: string, message: MessageAISDK) {
-  const supabase = createClient()
-  if (!supabase) return
+  if (!isFirebaseEnabled) return;
+  const db = getFirebaseFirestore()
+  if (!db) return
 
-  await supabase.from("messages").insert({
-    chat_id: chatId,
-    role: message.role,
-    content: message.content,
-    experimental_attachments: message.experimental_attachments,
-    created_at: message.createdAt?.toISOString() || new Date().toISOString(),
-  })
+  try {
+    await addDoc(collection(db, "messages"), {
+      chat_id: chatId,
+      role: message.role,
+      content: message.content,
+      experimental_attachments: message.experimental_attachments,
+      created_at: message.createdAt || Timestamp.now(),
+      parts: message.parts,
+      // user_id: message.user_id // Assuming user_id might be part of MessageAISDK or added if needed
+    })
+  } catch (error) {
+    console.error("Error inserting message to DB:", error)
+  }
 }
 
 async function insertMessagesToDb(chatId: string, messages: MessageAISDK[]) {
-  const supabase = createClient()
-  if (!supabase) return
+  if (!isFirebaseEnabled) return;
+  const db = getFirebaseFirestore()
+  if (!db) return
 
-  const payload = messages.map((message) => ({
-    chat_id: chatId,
-    role: message.role,
-    content: message.content,
-    experimental_attachments: message.experimental_attachments,
-    created_at: message.createdAt?.toISOString() || new Date().toISOString(),
-  }))
-
-  await supabase.from("messages").insert(payload)
+  try {
+    const batch = writeBatch(db)
+    messages.forEach((message) => {
+      const docRef = doc(collection(db, "messages")) // Automatically generate ID
+      batch.set(docRef, {
+        chat_id: chatId,
+        role: message.role,
+        content: message.content,
+        experimental_attachments: message.experimental_attachments,
+        created_at: message.createdAt || Timestamp.now(),
+        parts: message.parts,
+        // user_id: message.user_id
+      })
+    })
+    await batch.commit()
+  } catch (error) {
+    console.error("Error inserting messages to DB:", error)
+  }
 }
 
 async function deleteMessagesFromDb(chatId: string) {
-  const supabase = createClient()
-  if (!supabase) return
+  if (!isFirebaseEnabled) return;
+  const db = getFirebaseFirestore()
+  if (!db) return
 
-  const { error } = await supabase
-    .from("messages")
-    .delete()
-    .eq("chat_id", chatId)
-
-  if (error) {
+  try {
+    const messagesRef = collection(db, "messages")
+    const q = query(messagesRef, where("chat_id", "==", chatId))
+    const querySnapshot = await getDocs(q)
+    const batch = writeBatch(db)
+    querySnapshot.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+    await batch.commit()
+  } catch (error) {
     console.error("Failed to clear messages from database:", error)
   }
 }

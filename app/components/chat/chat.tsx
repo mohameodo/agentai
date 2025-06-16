@@ -29,6 +29,11 @@ import { useChatHandlers } from "./use-chat-handlers"
 import { useChatUtils } from "./use-chat-utils"
 import { useFileUpload } from "./use-file-upload"
 
+// Remove the incorrect props interface since chatId comes from useChatSession
+// interface ChatComponentProps {
+//   chatId: string;
+// }
+
 const FeedbackWidget = dynamic(
   () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
   { ssr: false }
@@ -58,6 +63,12 @@ function SearchParamsProvider({
 }
 
 export function Chat() {
+  // Remove props parameter since chatId comes from useChatSession
+  // const { chatId: passedChatId } = props; // Use passedChatId from props
+
+  // If useChatSession() provides other functionalities beyond chatId, it can still be used.
+  // For example: const { someOtherSessionValue, setSessionValue } = useChatSession();
+  // For this change, we ensure that 'passedChatId' is used for the chat ID.
   const { chatId } = useChatSession()
   const {
     createNewChat,
@@ -65,7 +76,7 @@ export function Chat() {
     updateChatModel,
     isLoading: isChatsLoading,
   } = useChats()
-  const currentChat = chatId ? getChatById(chatId) : null
+  const currentChat = chatId ? getChatById(chatId) : null // Use chatId from useChatSession
   const { messages: initialMessages, cacheAndAddMessage } = useMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -96,7 +107,7 @@ export function Chat() {
 
   const isAuthenticated = !!user?.id
 
-  const { draftValue, clearDraft } = useChatDraft(chatId)
+  const { draftValue, clearDraft } = useChatDraft(chatId) // Use chatId from useChatSession
 
   // Handle processed files from background removal
   const handleFileProcessed = useCallback((processedImageData: ProcessedImageData) => {

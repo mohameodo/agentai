@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { doc, getDoc } from "firebase/firestore"
 import { TOOL_REGISTRY, ToolId } from "../tools"
 import { localAgents } from "./local-agents"
 
@@ -15,35 +17,42 @@ export async function loadAgent(agentId: string) {
   }
 
   // Fallback to database agents
-  const supabase = await createClient()
-
-  if (!supabase) {
-    throw new Error("Supabase is not configured")
+  if (!isFirebaseEnabled) {
+    throw new Error("Firebase is not configured")
   }
 
-  const { data: agent, error } = await supabase
-    .from("agents")
-    .select("*")
-    .eq("id", agentId)
-    .maybeSingle()
+  const db = getFirebaseFirestore()
+  if (!db) {
+    throw new Error("Firebase Firestore not available")
+  }
 
-  if (error || !agent) {
+  try {
+    const agentRef = doc(db, "agents", agentId)
+    const agentDoc = await getDoc(agentRef)
+
+    if (!agentDoc.exists()) {
+      throw new Error("Agent not found")
+    }
+
+    const agent = agentDoc.data() as any
+
+    const activeTools = Array.isArray(agent.tools)
+      ? agent.tools.reduce((acc: Record<string, unknown>, toolId: string) => {
+          const tool = TOOL_REGISTRY[toolId as ToolId]
+          if (!tool) return acc
+          if (tool.isAvailable?.() === false) return acc
+          acc[toolId] = tool
+          return acc
+        }, {})
+      : {}
+
+    return {
+      systemPrompt: agent.system_prompt,
+      tools: activeTools,
+      maxSteps: agent.max_steps ?? 5,
+    }
+  } catch (error) {
+    console.error("Error loading agent:", error)
     throw new Error("Agent not found")
-  }
-
-  const activeTools = Array.isArray(agent.tools)
-    ? agent.tools.reduce((acc: Record<string, unknown>, toolId: string) => {
-        const tool = TOOL_REGISTRY[toolId as ToolId]
-        if (!tool) return acc
-        if (tool.isAvailable?.() === false) return acc
-        acc[toolId] = tool
-        return acc
-      }, {})
-    : {}
-
-  return {
-    systemPrompt: agent.system_prompt,
-    tools: activeTools,
-    maxSteps: agent.max_steps ?? 5,
   }
 }

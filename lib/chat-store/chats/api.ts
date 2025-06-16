@@ -1,7 +1,7 @@
 import { filterLocalAgentId } from "@/lib/agents/utils"
 import { readFromIndexedDB, writeToIndexedDB } from "@/lib/chat-store/persist"
 import type { Chat, Chats } from "@/lib/chat-store/types"
-import { createClient } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { MODEL_DEFAULT } from "../../config"
 import { fetchClient } from "../../fetch"
@@ -10,53 +10,67 @@ import {
   API_ROUTE_UPDATE_CHAT_AGENT,
   API_ROUTE_UPDATE_CHAT_MODEL,
 } from "../../routes"
+import { collection, query, where, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from "firebase/firestore"
 
 export async function getChatsForUserInDb(userId: string): Promise<Chats[]> {
-  const supabase = createClient()
-  if (!supabase) return []
+  if (!isFirebaseEnabled) return []
+  const db = getFirebaseFirestore()
+  if (!db) return []
 
-  const { data, error } = await supabase
-    .from("chats")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-
-  if (!data || error) {
+  try {
+    const chatsRef = collection(db, "chats")
+    const q = query(chatsRef, where("user_id", "==", userId), orderBy("created_at", "desc"))
+    const querySnapshot = await getDocs(q)
+    const chats: Chats[] = []
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      chats.push({
+        id: doc.id,
+        title: data.title,
+        created_at: (data.created_at as Timestamp)?.toDate()?.toISOString() || new Date().toISOString(),
+        model: data.model,
+        agent_id: data.agent_id || null,
+        user_id: data.user_id,
+        public: data.public || true,
+      } as Chats)
+    })
+    return chats
+  } catch (error) {
     console.error("Failed to fetch chats:", error)
     return []
   }
-
-  return data
 }
 
 export async function updateChatTitleInDb(id: string, title: string) {
-  const supabase = createClient()
-  if (!supabase) return
+  if (!isFirebaseEnabled) return
+  const db = getFirebaseFirestore()
+  if (!db) return
 
-  const { error } = await supabase.from("chats").update({ title }).eq("id", id)
-  if (error) throw error
+  try {
+    const chatRef = doc(db, "chats", id)
+    await updateDoc(chatRef, { title })
+  } catch (error) {
+    console.error("Error updating chat title:", error)
+    throw error
+  }
 }
 
 export async function deleteChatInDb(id: string) {
-  const supabase = createClient()
-  if (!supabase) return
+  if (!isFirebaseEnabled) return
+  const db = getFirebaseFirestore()
+  if (!db) return
 
-  const { error } = await supabase.from("chats").delete().eq("id", id)
-  if (error) throw error
+  try {
+    const chatRef = doc(db, "chats", id)
+    await deleteDoc(chatRef)
+  } catch (error) {
+    console.error("Error deleting chat:", error)
+    throw error
+  }
 }
 
 export async function getAllUserChatsInDb(userId: string): Promise<Chats[]> {
-  const supabase = createClient()
-  if (!supabase) return []
-
-  const { data, error } = await supabase
-    .from("chats")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-
-  if (!data || error) return []
-  return data
+  return getChatsForUserInDb(userId)
 }
 
 export async function createChatInDb(
@@ -65,17 +79,24 @@ export async function createChatInDb(
   model: string,
   systemPrompt: string
 ): Promise<string | null> {
-  const supabase = createClient()
-  if (!supabase) return null
+  if (!isFirebaseEnabled) return null
+  const db = getFirebaseFirestore()
+  if (!db) return null
 
-  const { data, error } = await supabase
-    .from("chats")
-    .insert({ user_id: userId, title, model, system_prompt: systemPrompt })
-    .select("id")
-    .single()
-
-  if (error || !data?.id) return null
-  return data.id
+  try {
+    const docRef = await addDoc(collection(db, "chats"), {
+      user_id: userId,
+      title,
+      model,
+      system_prompt: systemPrompt,
+      created_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+    return docRef.id
+  } catch (error) {
+    console.error("Error creating chat:", error)
+    return null
+  }
 }
 
 export async function fetchAndCacheChats(userId: string): Promise<Chats[]> {

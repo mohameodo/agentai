@@ -10,13 +10,11 @@ import Link from "next/link"
 import { Header } from "./header"
 import { ArrowUp } from "lucide-react"
 
-type MessageType = Tables<"messages">
-
 type ArticleProps = {
   date: string
   title: string
   subtitle: string
-  messages: MessageType[]
+  messages: MessageAISDK[] // Changed to MessageAISDK[]
   agentSlug?: string
   agentName?: string
 }
