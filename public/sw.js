@@ -44,6 +44,16 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Skip service worker for Google APIs and Firebase
+  if (url.hostname.includes('googleapis.com') || 
+      url.hostname.includes('google.com') ||
+      url.hostname.includes('firebase.googleapis.com') ||
+      url.hostname.includes('firestore.googleapis.com') ||
+      url.hostname.includes('identitytoolkit.googleapis.com') ||
+      url.hostname.includes('securetoken.googleapis.com')) {
+    return; // Let the browser handle these requests normally
+  }
+
   // Handle different types of requests
   if (request.method === 'GET') {
     // Static assets
