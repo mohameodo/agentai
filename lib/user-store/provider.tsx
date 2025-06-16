@@ -9,6 +9,9 @@ import {
   updateUserProfile,
 } from "@/lib/user-store/api"
 import { createContext, useContext, useEffect, useState } from "react"
+import { onAuthStateChange } from "@/lib/firebase/auth"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { getUserProfile } from "@/lib/firebase/user-api"
 
 type UserContextType = {
   user: UserProfile | null
@@ -29,6 +32,34 @@ export function UserProvider({
 }) {
   const [user, setUser] = useState<UserProfile | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Listen to Firebase Auth state changes
+  useEffect(() => {
+    if (!isFirebaseEnabled) {
+      return
+    }
+
+    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, get their profile
+        setIsLoading(true)
+        try {
+          const userProfile = await getUserProfile()
+          setUser(userProfile)
+        } catch (error) {
+          console.error("Error fetching user profile:", error)
+          setUser(null)
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        // User is signed out
+        setUser(null)
+      }
+    })
+
+    return unsubscribe
+  }, [])
 
   const refreshUser = async () => {
     if (!user?.id) return

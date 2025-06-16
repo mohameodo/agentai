@@ -105,19 +105,15 @@ export function SettingsContent({
             <div className="flex-1 overflow-y-auto px-4 pb-8">
               <TabsContent value="general" className="mt-0 space-y-8 h-full">
                 <UserProfile />
-                {isFirebaseEnabled && (
-                  <>
-                    <AccountManagement />
-                  </>
-                )}
+                <AccountManagement />
               </TabsContent>
 
               <TabsContent value="agents" className="mt-0 space-y-8 h-full">
-                {isFirebaseEnabled && <AgentsSection />}
+                <AgentsSection />
               </TabsContent>
 
               <TabsContent value="models" className="mt-0 space-y-8 h-full">
-                {isFirebaseEnabled && <ModelsSection />}
+                <ModelsSection />
               </TabsContent>
 
               <TabsContent value="features" className="mt-0 space-y-8 h-full">
@@ -208,19 +204,15 @@ export function SettingsContent({
             <div className="flex-1 overflow-auto px-6 pt-4">
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
-                {isFirebaseEnabled && (
-                  <>
-                    <AccountManagement />
-                  </>
-                )}
+                <AccountManagement />
               </TabsContent>
 
               <TabsContent value="agents" className="mt-0 space-y-6">
-                {isFirebaseEnabled && <AgentsSection />}
+                <AgentsSection />
               </TabsContent>
 
               <TabsContent value="models" className="mt-0 space-y-6">
-                {isFirebaseEnabled && <ModelsSection />}
+                <ModelsSection />
               </TabsContent>
 
               <TabsContent value="appearance" className="mt-0 space-y-6">

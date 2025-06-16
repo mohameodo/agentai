@@ -62,7 +62,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
     }
   }
 
-  const isLoggedIn = !!user
+  const isLoggedIn = !!user && !user.anonymous
   const isCodeHatActive = pathname.startsWith('/codehat')
   const isChatPage = pathname.startsWith('/c/') || pathname === '/'
 
@@ -84,7 +84,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
                 {/* Navigation Tabs */}
                 
                 {/* Model Selector - Left side for desktop on chat pages */}
-                {isChatPage && isLoggedIn && !isMobile && (
+                {isChatPage && !isMobile && (
                   <div className="pointer-events-auto ml-2 mt-2">
                     <ModelSelector
                       selectedModelId={selectedModelId}
@@ -97,7 +97,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
                 )}
                 
                 {/* Model Selector - Center for mobile on chat pages */}
-                {isChatPage && isLoggedIn && isMobile && (
+                {isChatPage && isMobile && (
                   <div className="pointer-events-auto flex-1 flex justify-center max-w-xs">
                     <ModelSelector
                       selectedModelId={selectedModelId}

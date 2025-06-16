@@ -12,7 +12,7 @@ import { ChatSessionProvider } from "@/lib/chat-store/session/provider"
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
 import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
 import { UserProvider } from "@/lib/user-store/provider"
-import { getUserProfile } from "@/lib/user/api"
+import type { UserProfile } from "@/app/types/user"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
 import { LayoutClient } from "./layout-client"
@@ -127,7 +127,8 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const isDev = process.env.NODE_ENV === "development"
-  const userProfile = await getUserProfile()
+  // Firebase auth is client-side only, so we start with null user
+  const userProfile: UserProfile | null = null
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -260,10 +261,10 @@ export default async function RootLayout({
         <PWAInstaller />
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
-          <ChatsProvider userId={userProfile?.id}>
+          <ChatsProvider userId={undefined}>
             <ChatSessionProvider>
-              <AgentProvider userId={userProfile?.id}>
-                <UserPreferencesProvider userId={userProfile?.id}>
+              <AgentProvider userId={undefined}>
+                <UserPreferencesProvider userId={undefined}>
                   <TooltipProvider delayDuration={200} skipDelayDuration={500}>
                     <ThemeProvider
                       attribute="class"
