@@ -78,7 +78,7 @@ export function Chat() {
   } = useChats()
   const currentChat = chatId ? getChatById(chatId) : null // Use chatId from useChatSession
   const { messages: initialMessages, cacheAndAddMessage } = useMessages()
-  const { user } = useUser()
+  const { user, updateUser } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { preferences } = useUserPreferences()
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
@@ -211,6 +211,7 @@ export function Chat() {
       selectedModel,
       chatId,
       updateChatModel,
+      updateUser,
       user,
     })
 
@@ -224,6 +225,15 @@ export function Chat() {
   useEffect(() => {
     setHydrated(true)
   }, [])
+
+  // Sync selectedModel with user preferences and current chat model
+  useEffect(() => {
+    const preferredModel = currentChat?.model || user?.preferred_model || MODEL_DEFAULT
+    if (preferredModel !== selectedModel) {
+      console.log("Syncing chat selected model with preference:", preferredModel)
+      setSelectedModel(preferredModel)
+    }
+  }, [currentChat?.model, user?.preferred_model, selectedModel])
 
   // handle errors
   useEffect(() => {

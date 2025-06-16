@@ -14,6 +14,7 @@ type UseChatHandlersProps = {
   selectedModel: string
   chatId: string | null
   updateChatModel: (chatId: string, model: string) => Promise<void>
+  updateUser: (updates: Partial<UserProfile>) => Promise<boolean>
   user: UserProfile | null
 }
 
@@ -25,6 +26,7 @@ export function useChatHandlers({
   selectedModel,
   chatId,
   updateChatModel,
+  updateUser,
   user,
 }: UseChatHandlersProps) {
   const { setDraftValue } = useChatDraft(chatId)
@@ -43,14 +45,23 @@ export function useChatHandlers({
         return
       }
 
+      setSelectedModel(model)
+
+      // If no chatId (new chat), update user's preferred model
       if (!chatId && user?.id) {
-        setSelectedModel(model)
+        try {
+          const success = await updateUser({ preferred_model: model })
+          if (!success) {
+            console.error("Failed to save model preference")
+          }
+        } catch (error) {
+          console.error("Error updating user preferred model:", error)
+        }
         return
       }
 
+      // If existing chat, update the chat's model
       const oldModel = selectedModel
-
-      setSelectedModel(model)
 
       try {
         await updateChatModel(chatId!, model)
@@ -63,7 +74,7 @@ export function useChatHandlers({
         })
       }
     },
-    [chatId, selectedModel, setSelectedModel, updateChatModel, user?.id]
+    [chatId, selectedModel, setSelectedModel, updateChatModel, updateUser, user?.id]
   )
 
   const handleDelete = useCallback(
