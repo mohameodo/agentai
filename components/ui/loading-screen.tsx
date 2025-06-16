@@ -55,43 +55,54 @@ export function LoadingScreen({ className }: { className?: string }) {
           font-family: system-ui, sans-serif;
           font-weight: bold;
           text-transform: uppercase;
-          /* Fallback solid color for better visibility */
           color: hsl(var(--foreground));
-          background:
-            radial-gradient(1.13em at 50% 1.6em, hsl(var(--foreground)) 99%, transparent 101%) calc(50% - 1.6em) 0/3.2em 100%,
-            radial-gradient(1.13em at 50% -0.8em, transparent 99%, hsl(var(--foreground)) 101%) 50% .8em/3.2em 100% repeat-x;
+          position: relative;
           animation: nexiloop-anim 2s linear infinite;
-        }
-
-        /* Progressive enhancement for browsers that support background-clip */
-        @supports (background-clip: text) or (-webkit-background-clip: text) {
-          .nexiloop-loader {
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            /* Add stroke for better definition */
-            -webkit-text-stroke: 0.5px hsl(var(--foreground) / 0.3);
-            text-stroke: 0.5px hsl(var(--foreground) / 0.3);
-          }
-        }
-
-        /* Ensure visibility in light mode */
-        @media (prefers-color-scheme: light) {
-          @supports (background-clip: text) or (-webkit-background-clip: text) {
-            .nexiloop-loader {
-              -webkit-text-stroke: 1px hsl(var(--foreground) / 0.8);
-              text-stroke: 1px hsl(var(--foreground) / 0.8);
-            }
-          }
         }
 
         .nexiloop-loader:before {
           content: "nexiloop ";
+          background: linear-gradient(
+            90deg,
+            hsl(var(--foreground)) 0%,
+            hsl(var(--primary)) 25%,
+            hsl(var(--foreground)) 50%,
+            hsl(var(--primary)) 75%,
+            hsl(var(--foreground)) 100%
+          );
+          background-size: 400% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: wave-colors 2s ease-in-out infinite;
+        }
+
+        /* Fallback for browsers that don't support background-clip: text */
+        @supports not (background-clip: text) {
+          .nexiloop-loader:before {
+            -webkit-text-fill-color: hsl(var(--foreground));
+            color: hsl(var(--foreground));
+          }
+        }
+
+        @keyframes wave-colors {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
         }
 
         @keyframes nexiloop-anim {
-          to {
-            background-position: calc(50% + 1.6em) 0, calc(50% + 3.2em) .8em;
+          0% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-5px);
+          }
+          100% {
+            transform: translateY(0px);
           }
         }
 
