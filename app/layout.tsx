@@ -11,6 +11,8 @@ import { ChatsProvider } from "@/lib/chat-store/chats/provider"
 import { ChatSessionProvider } from "@/lib/chat-store/session/provider"
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
 import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
+import { RealtimePreferenceSync } from "@/lib/user-preference-store/realtime-sync"
+import { ModelPreferenceSync } from "@/lib/user-preference-store/model-sync"
 import { UserProvider } from "@/lib/user-store/provider"
 import type { UserProfile } from "@/app/types/user"
 import { ThemeProvider } from "next-themes"
@@ -261,28 +263,32 @@ export default async function RootLayout({
         <PWAInstaller />
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
-          <ChatsProvider userId={undefined}>
-            <ChatSessionProvider>
-              <AgentProvider userId={undefined}>
-                <UserPreferencesProvider userId={undefined}>
-                  <TooltipProvider delayDuration={200} skipDelayDuration={500}>
-                    <ThemeProvider
-                      attribute="class"
-                      defaultTheme="light"
-                      enableSystem
-                      disableTransitionOnChange
-                    >
-                      <ThemeBackground />
-                      <SidebarProvider defaultOpen>
-                        <Toaster position="top-center" />
-                        {children}
-                      </SidebarProvider>
-                    </ThemeProvider>
-                  </TooltipProvider>
-                </UserPreferencesProvider>
-              </AgentProvider>
-            </ChatSessionProvider>
-          </ChatsProvider>
+          <RealtimePreferenceSync>
+            <ModelPreferenceSync>
+              <ChatsProvider userId={undefined}>
+                <ChatSessionProvider>
+                  <AgentProvider userId={undefined}>
+                    <UserPreferencesProvider userId={undefined}>
+                      <TooltipProvider delayDuration={200} skipDelayDuration={500}>
+                        <ThemeProvider
+                          attribute="class"
+                          defaultTheme="light"
+                          enableSystem
+                          disableTransitionOnChange
+                        >
+                          <ThemeBackground />
+                          <SidebarProvider defaultOpen>
+                            <Toaster position="top-center" />
+                            {children}
+                          </SidebarProvider>
+                        </ThemeProvider>
+                      </TooltipProvider>
+                    </UserPreferencesProvider>
+                  </AgentProvider>
+                </ChatSessionProvider>
+              </ChatsProvider>
+            </ModelPreferenceSync>
+          </RealtimePreferenceSync>
         </UserProvider>
       </body>
     </html>

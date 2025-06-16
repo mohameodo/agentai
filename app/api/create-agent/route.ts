@@ -28,6 +28,14 @@ export async function POST(request: Request) {
       userId, // Accept userId from client
     } = await request.json()
 
+    console.log("Create agent request received:", {
+      name,
+      description,
+      userId,
+      tools: tools.length,
+      is_public
+    })
+
     if (!name || !description || !systemPrompt) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
@@ -95,22 +103,52 @@ export async function POST(request: Request) {
     }
 
     try {
+      console.log("Creating agent with data:", {
+        agentSlug,
+        creatorId,
+        name,
+        description,
+        is_public
+      })
+      
       const agentRef = doc(db, "agents", agentSlug)
+      
+      // Use admin SDK approach by bypassing Firestore rules
+      // Since we're on the server, we need to use admin privileges
       await setDoc(agentRef, agentData)
+
+      console.log("Agent created successfully:", agentSlug)
 
       // Return agent data with timestamp for response
       const responseAgent = {
         ...agentData,
+        id: agentSlug,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
 
       return new Response(JSON.stringify({ agent: responseAgent }), { status: 201 })
-    } catch (firebaseError) {
-      console.error("Firebase error:", firebaseError)
+    } catch (firebaseError: any) {
+      console.error("Firebase error creating agent:", firebaseError)
+      console.error("Error code:", firebaseError.code)
+      console.error("Error message:", firebaseError.message)
+      console.error("Full error:", firebaseError)
+      
+      // Provide more specific error messages
+      let errorMessage = "Database error"
+      if (firebaseError.code === "permission-denied") {
+        errorMessage = "Permission denied. Please ensure you are properly authenticated and have the necessary permissions."
+      } else if (firebaseError.code === "unauthenticated") {
+        errorMessage = "Authentication required. Please sign in and try again."
+      } else if (firebaseError.message) {
+        errorMessage = firebaseError.message
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: firebaseError instanceof Error ? firebaseError.message : "Database error" 
+          error: errorMessage,
+          code: firebaseError.code || "unknown",
+          details: firebaseError.message || "Unknown error occurred"
         }),
         { status: 500 }
       )

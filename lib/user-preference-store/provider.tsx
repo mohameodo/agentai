@@ -38,6 +38,8 @@ interface UserPreferencesContextType {
   setDefaultImageModel: (model: string) => void
   setBackgroundRemovalEnabled: (enabled: boolean) => void
   setVideoStreamingEnabled: (enabled: boolean) => void
+  updatePreference: (key: string, value: any) => void
+  syncToFirebase: (key: string, value: any) => Promise<void>
 }
 
 const UserPreferencesContext = createContext<
@@ -136,6 +138,32 @@ export function UserPreferencesProvider({
     setPreferences((prev) => ({ ...prev, videoStreamingEnabled: enabled }))
   }
 
+  // Generic method to update any preference
+  const updatePreference = (key: string, value: any) => {
+    setPreferences((prev) => ({ ...prev, [key]: value }))
+  }
+
+  // Sync preferences to Firebase
+  const syncToFirebase = async (key: string, value: any) => {
+    if (!isFirebaseEnabled || !userId) return
+
+    try {
+      const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore")
+      const { getFirebaseFirestore } = await import("@/lib/firebase/client")
+      
+      const db = getFirebaseFirestore()
+      if (!db) return
+
+      const userRef = doc(db, "users", userId)
+      await updateDoc(userRef, {
+        [`preferences.${key}`]: value,
+        updated_at: serverTimestamp()
+      })
+    } catch (error) {
+      console.error("Error syncing preference to Firebase:", error)
+    }
+  }
+
   return (
     <UserPreferencesContext.Provider
       value={{
@@ -147,6 +175,8 @@ export function UserPreferencesProvider({
         setDefaultImageModel,
         setBackgroundRemovalEnabled,
         setVideoStreamingEnabled,
+        updatePreference,
+        syncToFirebase,
       }}
     >
       {children}

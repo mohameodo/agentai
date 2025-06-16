@@ -1,20 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read and update their own profile
+    // Users can read and update their own profile and preferences
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow real-time updates to preferences and model settings
+      allow update: if request.auth != null && 
+                   request.auth.uid == userId &&
+                   (request.resource.data.keys().hasOnly(['preferences', 'model_preference', 'updated_at']) ||
+                    request.resource.data.keys().hasOnly(['preferences', 'updated_at']) ||
+                    request.resource.data.keys().hasOnly(['model_preference', 'updated_at']));
     }
     
-    // Agents
+    // Agents - Updated for better permissions
     match /agents/{agentId} {
       // Anyone can read public agents
       allow read: if resource.data.is_public == true;
       // Authenticated users can read their own agents
       allow read: if request.auth != null && request.auth.uid == resource.data.creator_id;
-      // Authenticated users can create agents
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.creator_id;
+      // Authenticated users can create agents with their own creator_id
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.creator_id &&
+                   request.resource.data.creator_id != null;
       // Users can update their own agents
       allow update: if request.auth != null && request.auth.uid == resource.data.creator_id;
       // Users can delete their own agents
@@ -25,6 +34,12 @@ service cloud.firestore {
     match /chats/{chatId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.user_id;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
+      
+      // Allow real-time updates to chat model and preferences
+      allow update: if request.auth != null && 
+                   request.auth.uid == resource.data.user_id &&
+                   (request.resource.data.keys().hasOnly(['model', 'updated_at']) ||
+                    request.resource.data.keys().hasOnly(['preferences', 'updated_at']));
     }
     
     // Messages - users can only access messages from their own chats
@@ -58,6 +73,12 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
       // Admin-only read access (you'd need to implement admin claims)
       allow read: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // User preferences - real-time sync collection (optional separate collection)
+    match /user_preferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

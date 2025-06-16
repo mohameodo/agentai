@@ -10,6 +10,20 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     optimizePackageImports: ["@phosphor-icons/react"],
     nodeMiddleware: true,
   },
+  // Cookie and session configuration
+  serverRuntimeConfig: {
+    // Cookie settings for better persistence
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false, // Allow client-side access for Firebase
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    }
+  },
+  publicRuntimeConfig: {
+    // Public configuration
+    firebasePersistence: true,
+  },
   images: {
     remotePatterns: [
       {

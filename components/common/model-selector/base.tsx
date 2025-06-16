@@ -207,22 +207,25 @@ export function ModelSelector({
   }
 
   const trigger = (
-    <Button
-      variant="outline"
-      className={cn(
-        "justify-between", 
-        className?.includes('bg-transparent') 
-          ? className 
-          : cn("dark:bg-secondary", className)
-      )}
-      disabled={isLoadingModels}
-    >
-      <div className="flex items-center gap-2">
-        {currentProvider?.icon && <currentProvider.icon className="size-5" />}
-        <span>{currentModel?.name || "Select model"}</span>
-      </div>
-      <CaretDown className="size-4 opacity-50" />
-    </Button>
+    <div className={`flex ${isMobile ? 'justify-center w-full' : ''}`}>
+      <Button
+        variant="outline"
+        className={cn(
+          "justify-between", 
+          isMobile ? "max-w-sm mx-auto w-full" : "",
+          className?.includes('bg-transparent') 
+            ? className 
+            : cn("dark:bg-secondary", className)
+        )}
+        disabled={isLoadingModels}
+      >
+        <div className="flex items-center gap-2">
+          {currentProvider?.icon && <currentProvider.icon className="size-5" />}
+          <span>{currentModel?.name || "Select model"}</span>
+        </div>
+        <CaretDown className="size-4 opacity-50" />
+      </Button>
+    </div>
   )
 
   // Handle input change without losing focus

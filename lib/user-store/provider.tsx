@@ -12,6 +12,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { onAuthStateChange } from "@/lib/firebase/auth"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { getUserProfile, ensureUserDocumentExists } from "@/lib/firebase/user-api"
+import { useAuthPersistence } from "@/lib/hooks/use-auth-persistence"
 
 type UserContextType = {
   user: UserProfile | null
@@ -19,6 +20,7 @@ type UserContextType = {
   updateUser: (updates: Partial<UserProfile>) => Promise<boolean>
   refreshUser: () => Promise<void>
   signOut: () => Promise<void>
+  refreshAuth: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -32,37 +34,70 @@ export function UserProvider({
 }) {
   const [user, setUser] = useState<UserProfile | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
+  const { user: firebaseUser, isLoading: authLoading, refreshAuth, isInitialized } = useAuthPersistence()
 
-  // Listen to Firebase Auth state changes
+  // Listen to Firebase Auth state changes with improved persistence
   useEffect(() => {
-    if (!isFirebaseEnabled) {
+    if (!isFirebaseEnabled || !isInitialized) {
       return
     }
 
-    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+    let unsubscribed = false
+
+    const handleAuthStateChange = async (firebaseUser: any) => {
+      if (unsubscribed) return
+      
+      console.log("Auth state changed:", firebaseUser ? "User signed in" : "User signed out")
+      
       if (firebaseUser) {
         // User is signed in, ensure their document exists and get their profile
         setIsLoading(true)
         try {
+          console.log("Ensuring user document exists for:", firebaseUser.uid)
+          
           // Ensure user document exists before fetching profile
           await ensureUserDocumentExists(firebaseUser.uid)
           
+          console.log("Fetching user profile...")
           const userProfile = await getUserProfile()
-          setUser(userProfile)
+          console.log("User profile fetched:", userProfile ? "Success" : "Failed")
+          
+          if (!unsubscribed) {
+            setUser(userProfile)
+          }
         } catch (error) {
           console.error("Error fetching user profile:", error)
-          setUser(null)
+          if (!unsubscribed) {
+            setUser(null)
+          }
         } finally {
-          setIsLoading(false)
+          if (!unsubscribed) {
+            setIsLoading(false)
+          }
         }
       } else {
         // User is signed out
-        setUser(null)
+        console.log("User signed out, clearing user state")
+        if (!unsubscribed) {
+          setUser(null)
+          setIsLoading(false)
+        }
       }
-    })
+    }
 
-    return unsubscribe
-  }, [])
+    // Handle auth state change
+    if (firebaseUser) {
+      handleAuthStateChange(firebaseUser)
+    } else if (isInitialized && !authLoading) {
+      // Auth is initialized and user is not signed in
+      setUser(null)
+      setIsLoading(false)
+    }
+
+    return () => {
+      unsubscribed = true
+    }
+  }, [firebaseUser, isInitialized, authLoading])
 
   const refreshUser = async () => {
     if (!user?.id) return
@@ -119,7 +154,7 @@ export function UserProvider({
 
   return (
     <UserContext.Provider
-      value={{ user, isLoading, updateUser, refreshUser, signOut }}
+      value={{ user, isLoading, updateUser, refreshUser, signOut, refreshAuth }}
     >
       {children}
     </UserContext.Provider>

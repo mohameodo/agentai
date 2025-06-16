@@ -98,10 +98,28 @@ export async function createUserProfile(user: any): Promise<boolean> {
       profile_image: user.photoURL,
       display_name: user.displayName,
       anonymous: user.isAnonymous,
+      preferences: {
+        theme: 'system',
+        language: 'en',
+        model_preference: 'gpt-4o',
+        temperature: 0.7,
+        max_tokens: 4000,
+        streaming: true,
+        auto_save: true,
+        notifications: true,
+        analytics: false,
+        beta_features: false,
+        sidebar_collapsed: false,
+        chat_history_enabled: true,
+        system_prompt: '',
+      },
+      model_preference: 'gpt-4o',
+      system_prompt: '',
+      daily_message_count: 0,
+      daily_pro_message_count: 0,
+      message_count: 0,
       special_agent_count: 0,
       premium: false,
-      daily_pro_message_count: 0,
-      preferences: {}
     }
 
     const userRef = doc(db, COLLECTIONS.USERS, user.uid)

@@ -16,7 +16,7 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-Instead, please email us at: **security@nexiloop.ai** (if available) or create a private security advisory.
+Instead, please email us at: **support@nexiloop.com** (if available) or create a private security advisory.
 
 ### What to Include
 

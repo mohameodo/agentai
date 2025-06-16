@@ -115,47 +115,74 @@ export function DialogCreateAgentTrigger({
     setIsLoading(true)
 
     try {
-      const apiResponse = await fetchClient(API_ROUTE_CREATE_AGENT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          systemPrompt: formData.systemPrompt,
-          avatar_url: formData.avatarUrl || null,
-          mcp_config: null,
-          example_inputs: [
-            `How can you help me with ${formData.name.toLowerCase()}?`,
-            "What are your capabilities?",
-            "Can you assist me with my questions?",
-          ],
-          tools: formData.tools,
-          remixable: false,
-          is_public: formData.isPublic,
-          max_steps: 5,
-          useNexiloopAsCreator: formData.useNexiloopAsCreator,
-          userId: user?.id, // Pass userId to API
-        }),
-      })
+      // Import client-side agent creation function
+      const { createAgentWithAuth } = await import("@/lib/agents/create-agent-client")
+      const { nanoid } = await import("nanoid")
+      const slugify = (await import("slugify")).default
 
-      if (!apiResponse.ok) {
-        const errorData = await apiResponse.json()
-        throw new Error(errorData.error || "Failed to create agent")
+      // Generate agent slug
+      const generateAgentSlug = (title: string) => {
+        const base = slugify(title, { lower: true, strict: true, trim: true })
+        const id = nanoid(6)
+        return `${base}-${id}`
       }
 
-      const { agent } = await apiResponse.json()
+      const agentSlug = generateAgentSlug(formData.name)
+
+      const agentData = {
+        slug: agentSlug,
+        name: formData.name,
+        description: formData.description,
+        avatar_url: formData.avatarUrl || null,
+        mcp_config: null,
+        example_inputs: [
+          `How can you help me with ${formData.name.toLowerCase()}?`,
+          "What are your capabilities?",
+          "Can you assist me with my questions?",
+        ],
+        tools: formData.tools,
+        remixable: false,
+        is_public: formData.isPublic,
+        system_prompt: formData.systemPrompt,
+        max_steps: 5,
+        creator_id: user.id,
+      }
+
+      console.log("Creating agent with client-side Firestore:", agentSlug)
+
+      // Create agent using client-side Firestore with user auth context
+      const agent = await createAgentWithAuth(agentData)
+
+      console.log("Agent created successfully:", agent)
 
       // Close the dialog and redirect
       setOpen(false)
       router.push(`/?agent=${agent.slug}`)
+      
+      toast({
+        title: "Agent created successfully!",
+        description: `${agent.name} is now ready to use.`,
+      })
     } catch (error: unknown) {
       console.error("Agent creation error:", error)
+      
+      let errorMessage = "Failed to create agent. Please try again."
+      
+      if (error instanceof Error) {
+        if (error.message.includes("permission-denied")) {
+          errorMessage = "Permission denied. Please ensure you are properly authenticated."
+        } else if (error.message.includes("unauthenticated")) {
+          errorMessage = "Authentication required. Please sign in and try again."
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       toast({
         title: "Error creating agent",
-        description:
-          (error as Error).message || "Failed to create agent. Please try again.",
+        description: errorMessage,
       })
-      setError({ form: "Failed to create agent. Please try again." })
+      setError({ form: errorMessage })
     } finally {
       setIsLoading(false)
     }

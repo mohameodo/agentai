@@ -12,10 +12,27 @@ export interface FirebaseUser {
   special_agent_reset?: Timestamp
   premium?: boolean
   daily_pro_message_count?: number
+  daily_message_count?: number
+  message_count?: number
   daily_pro_reset?: Timestamp
   last_active_at?: Timestamp
   model_preference?: string
-  preferences?: Record<string, any>
+  preferences?: {
+    theme?: string
+    language?: string
+    model_preference?: string
+    temperature?: number
+    max_tokens?: number
+    streaming?: boolean
+    auto_save?: boolean
+    notifications?: boolean
+    analytics?: boolean
+    beta_features?: boolean
+    sidebar_collapsed?: boolean
+    chat_history_enabled?: boolean
+    system_prompt?: string
+    [key: string]: any
+  }
   system_prompt?: string
   created_at: Timestamp
   updated_at: Timestamp
