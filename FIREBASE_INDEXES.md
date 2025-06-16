@@ -2,6 +2,8 @@
 
 This document lists all the required Firestore indexes for the AI Assistant application to function properly.
 
+> **✅ Already Configured**: These indexes are already configured in the `firestore.indexes.json` file in this project. Simply run `firebase deploy --only firestore:indexes` to deploy them to your Firebase project.
+
 ## Required Indexes
 
 ### 1. Agents Collection
@@ -112,9 +114,27 @@ Fields:
 ```
 **Purpose**: For managing anonymous/guest users
 
-## How to Create These Indexes
+## How to Deploy These Indexes
 
-### Option 1: Firebase Console (Recommended)
+### Option 1: Firebase CLI (Recommended)
+
+The indexes are already configured in your `firestore.indexes.json` file. To deploy them:
+
+```bash
+# Install Firebase CLI if you haven't already
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Initialize Firebase in your project (if not done already)
+firebase init firestore
+
+# Deploy the indexes
+firebase deploy --only firestore:indexes
+```
+
+### Option 2: Firebase Console
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Select your project
@@ -123,9 +143,9 @@ Fields:
 5. Click "Create Index"
 6. Add each index according to the specifications above
 
-### Option 2: Firebase CLI
+### Option 3: Manual Configuration
 
-You can also create these indexes using the Firebase CLI by updating your `firestore.indexes.json` file:
+You can also create these indexes using the Firebase CLI by updating your `firestore.indexes.json` file (already done in this project):
 
 ```json
 {
