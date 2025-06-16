@@ -11,8 +11,16 @@ export async function fetchCuratedAgentsFromDb(): Promise<Agent[] | null> {
 
   try {
     const agentsRef = collection(db, "agents")
-    const q = firebaseQuery(agentsRef, where("slug", "in", CURATED_AGENTS_SLUGS))
-    const querySnapshot = await getDocs(q)
+    // First try to get curated agents by flag
+    let q = firebaseQuery(agentsRef, where("is_curated", "==", true), where("is_public", "==", true))
+    let querySnapshot = await getDocs(q)
+    
+    // If no curated agents found, fallback to slug-based query
+    if (querySnapshot.empty && CURATED_AGENTS_SLUGS.length > 0) {
+      q = firebaseQuery(agentsRef, where("slug", "in", CURATED_AGENTS_SLUGS))
+      querySnapshot = await getDocs(q)
+    }
+    
     const agents: Agent[] = []
     querySnapshot.forEach((doc) => {
       const data = doc.data()
@@ -21,10 +29,18 @@ export async function fetchCuratedAgentsFromDb(): Promise<Agent[] | null> {
         ...data,
       } as Agent)
     })
+    
+    // If no curated agents found, return empty array instead of null to prevent errors
+    if (agents.length === 0) {
+      console.warn("No curated agents found. You may need to seed them first.")
+      return []
+    }
+    
     return agents
   } catch (error) {
     console.error("Error fetching curated agents:", error)
-    return null
+    // Return empty array instead of null to prevent UI errors
+    return []
   }
 }
 

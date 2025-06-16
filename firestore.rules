@@ -16,10 +16,12 @@ service cloud.firestore {
     
     // Agents - Updated for better permissions
     match /agents/{agentId} {
-      // Anyone can read public agents
-      allow read: if resource.data.is_public == true;
+      // Anyone can read public or curated agents (including unauthenticated users)
+      allow read: if resource.data.is_public == true || resource.data.is_curated == true;
       // Authenticated users can read their own agents
       allow read: if request.auth != null && request.auth.uid == resource.data.creator_id;
+      // Allow reading of system-created curated agents
+      allow read: if resource.data.creator_id == "system";
       // Authenticated users can create agents with their own creator_id
       allow create: if request.auth != null && 
                    request.auth.uid == request.resource.data.creator_id &&

@@ -1,22 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
+import { updateCodeHatProject, getCodeHatProject } from "@/lib/codehat/api"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
 
-// Define the API route handlers
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
+  if (!isFirebaseEnabled) {
+    return NextResponse.json(
+      { error: "Firebase is not enabled" },
+      { status: 503 }
+    )
+  }
+
   try {
     const { projectId } = await params
+    // Updated to pass userId as well (mock for now)
+    const project = await getCodeHatProject("mock-user-id", projectId)
     
-    // Mock implementation for now
-    return NextResponse.json({ 
-      project: { 
-        id: projectId, 
-        name: "Mock Project",
-        description: "A mock project for testing",
-        created_at: new Date().toISOString()
-      } 
-    })
+    if (!project) {
+      return NextResponse.json(
+        { error: "Project not found" },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ project })
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch project" },
@@ -29,18 +38,28 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
+  if (!isFirebaseEnabled) {
+    return NextResponse.json(
+      { error: "Firebase is not enabled" },
+      { status: 503 }
+    )
+  }
+
   try {
     const { projectId } = await params
     const updates = await request.json()
     
-    // Mock implementation for now
-    return NextResponse.json({ 
-      project: { 
-        id: projectId, 
-        ...updates,
-        updated_at: new Date().toISOString()
-      } 
-    })
+    // Updated to pass userId as well (mock for now)
+    const project = await updateCodeHatProject("mock-user-id", projectId, updates)
+    
+    if (!project) {
+      return NextResponse.json(
+        { error: "Project not found" },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ project })
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to update project" },
@@ -48,3 +67,5 @@ export async function PUT(
     )
   }
 }
+
+// Ensure this file is treated as a module

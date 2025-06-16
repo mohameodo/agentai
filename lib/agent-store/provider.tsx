@@ -62,7 +62,13 @@ export const AgentProvider = ({ children, userId }: AgentProviderProps) => {
 
   const fetchCuratedAgents = useCallback(async () => {
     const agents = await fetchCuratedAgentsFromDb()
-    if (agents) setCuratedAgents(agents)
+    // Handle both null and empty array cases
+    if (agents !== null) {
+      setCuratedAgents(agents)
+    } else {
+      // Set to empty array if fetch failed
+      setCuratedAgents([])
+    }
   }, [])
 
   const fetchUserAgents = useCallback(async () => {

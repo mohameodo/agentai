@@ -48,7 +48,7 @@
     "firebase:deploy": "firebase deploy",
     "firebase:emulators": "firebase emulators:start",
     "firebase:rules": "firebase deploy --only firestore,storage",
-    "db:setup": "echo 'Setting up Firebase...' && echo 'Please run: npm run firebase:deploy'",
+    "seed:agents": "node scripts/seed-curated-agents.js",
     "test": "echo \"No tests specified\" && exit 0",
     "analyze": "ANALYZE=true npm run build"
   },
