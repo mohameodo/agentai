@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "motion/react"
+import { cn } from "@/lib/utils"
 
 const loadingMessages = [
   "Cooking up the magic...",
@@ -9,7 +10,7 @@ const loadingMessages = [
   "Nexiloop ain't slow, just dramatic."
 ]
 
-export function LoadingScreen() {
+export function LoadingScreen({ className }: { className?: string }) {
   const [messageIndex, setMessageIndex] = useState(0)
 
   useEffect(() => {
@@ -21,61 +22,42 @@ export function LoadingScreen() {
   }, [])
 
   return (
-    <div className="loading-screen">
-      <div className="loading-container">
-        {/* Nexiloop animated text */}
-        <div className="nexiloop-loader" />
-        
-        {/* Animated loader */}
-        <div className="spinner-loader" />
-        
-        {/* Loading message */}
-        <motion.p 
-          key={messageIndex}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-          className="loading-message"
-        >
-          {loadingMessages[messageIndex]}
-        </motion.p>
-      </div>
+    <div className={cn(
+      "fixed inset-0 z-50 flex flex-col items-center justify-center bg-background",
+      className
+    )}>
+      {/* Nexiloop animated text */}
+      <div className="nexiloop-loader mb-8" />
+      
+      {/* Animated loader */}
+      <div className="spinner-loader mb-6" />
+      
+      {/* Loading message */}
+      <motion.p 
+        key={messageIndex}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5 }}
+        className="text-lg font-semibold text-muted-foreground text-center"
+      >
+        {loadingMessages[messageIndex]}
+      </motion.p>
 
       <style jsx>{`
-        .loading-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-        }
-
-        .loading-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2rem;
-        }
-
         /* Nexiloop animated text loader */
         .nexiloop-loader {
           width: fit-content;
-          font-size: 40px;
+          font-size: 2.5rem;
           line-height: 1.5;
           font-family: system-ui, sans-serif;
           font-weight: bold;
           text-transform: uppercase;
-          color: #0000;
-          -webkit-text-stroke: 1px #fff;
+          color: transparent;
+          -webkit-text-stroke: 1px hsl(var(--foreground));
           background:
-            radial-gradient(1.13em at 50% 1.6em, #fff 99%, #0000 101%) calc(50% - 1.6em) 0/3.2em 100%,
-            radial-gradient(1.13em at 50% -0.8em, #0000 99%, #fff 101%) 50% .8em/3.2em 100% repeat-x;
+            radial-gradient(1.13em at 50% 1.6em, hsl(var(--foreground)) 99%, transparent 101%) calc(50% - 1.6em) 0/3.2em 100%,
+            radial-gradient(1.13em at 50% -0.8em, transparent 99%, hsl(var(--foreground)) 101%) 50% .8em/3.2em 100% repeat-x;
           -webkit-background-clip: text;
           background-clip: text;
           animation: nexiloop-anim 2s linear infinite;
@@ -91,50 +73,75 @@ export function LoadingScreen() {
           }
         }
 
-        /* Spinner loader */
+        /* Spinner loader without blur */
         .spinner-loader {
           width: 80px;
           aspect-ratio: 1;
-          border: 10px solid #0000;
-          box-sizing: border-box;
+          position: relative;
+        }
+
+        .spinner-loader::before {
+          content: '';
+          position: absolute;
+          inset: 0;
           background: 
-            radial-gradient(farthest-side, #fff 98%, #0000) 0 0/20px 20px,
-            radial-gradient(farthest-side, #fff 98%, #0000) 100% 0/20px 20px,
-            radial-gradient(farthest-side, #fff 98%, #0000) 100% 100%/20px 20px,
-            radial-gradient(farthest-side, #fff 98%, #0000) 0 100%/20px 20px,
-            linear-gradient(#fff 0 0) 50%/40px 40px,
-            rgba(255, 255, 255, 0.1);
+            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 0 0/20px 20px,
+            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 60px 0/20px 20px,
+            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 60px 60px/20px 20px,
+            radial-gradient(circle, hsl(var(--foreground)) 30%, transparent 31%) 0 60px/20px 20px,
+            radial-gradient(circle, hsl(var(--primary)) 30%, transparent 31%) 30px 30px/20px 20px;
           background-repeat: no-repeat;
-          filter: blur(4px) contrast(10);
-          animation: spinner-anim 0.8s infinite;
+          animation: spinner-anim 1.2s infinite ease-in-out;
         }
 
         @keyframes spinner-anim {
-          100% {
-            background-position: 100% 0, 100% 100%, 0 100%, 0 0, center;
+          0% { 
+            background-position: 0 0, 60px 0, 60px 60px, 0 60px, 30px 30px;
           }
-        }
-
-        .loading-message {
-          color: white;
-          font-size: 18px;
-          font-weight: 600;
-          text-align: center;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-          margin: 0;
+          25% { 
+            background-position: 60px 0, 60px 60px, 0 60px, 0 0, 30px 30px;
+          }
+          50% { 
+            background-position: 60px 60px, 0 60px, 0 0, 60px 0, 30px 30px;
+          }
+          75% { 
+            background-position: 0 60px, 0 0, 60px 0, 60px 60px, 30px 30px;
+          }
+          100% { 
+            background-position: 0 0, 60px 0, 60px 60px, 0 60px, 30px 30px;
+          }
         }
 
         @media (max-width: 768px) {
           .nexiloop-loader {
-            font-size: 28px;
+            font-size: 1.75rem;
           }
           
           .spinner-loader {
             width: 60px;
           }
-          
-          .loading-message {
-            font-size: 16px;
+
+          .spinner-loader::before {
+            background-size: 15px 15px;
+            background-position: 0 0, 45px 0, 45px 45px, 0 45px, 22.5px 22.5px;
+          }
+
+          @keyframes spinner-anim {
+            0% { 
+              background-position: 0 0, 45px 0, 45px 45px, 0 45px, 22.5px 22.5px;
+            }
+            25% { 
+              background-position: 45px 0, 45px 45px, 0 45px, 0 0, 22.5px 22.5px;
+            }
+            50% { 
+              background-position: 45px 45px, 0 45px, 0 0, 45px 0, 22.5px 22.5px;
+            }
+            75% { 
+              background-position: 0 45px, 0 0, 45px 0, 45px 45px, 22.5px 22.5px;
+            }
+            100% { 
+              background-position: 0 0, 45px 0, 45px 45px, 0 45px, 22.5px 22.5px;
+            }
           }
         }
       `}</style>
