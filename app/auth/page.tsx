@@ -1,11 +1,8 @@
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { notFound } from "next/navigation"
 import LoginPage from "./login-page"
 
 export default function AuthPage() {
-  if (!isSupabaseEnabled) {
-    return notFound()
-  }
-
+  // Always show the login page, even if Supabase is not fully configured
+  // This allows for anonymous/guest usage
   return <LoginPage />
 }

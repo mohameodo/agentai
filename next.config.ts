@@ -123,11 +123,6 @@ const nextConfig: NextConfig = withBundleAnalyzer({
         destination: '/',
         permanent: true,
       },
-      {
-        source: '/login',
-        destination: '/auth',
-        permanent: true,
-      },
     ]
   },
 })

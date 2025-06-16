@@ -151,12 +151,7 @@ export default async function RootLayout({
         {/* Cache Control */}
         <meta httpEquiv="cache-control" content="public, max-age=31536000, immutable" />
         <meta httpEquiv="expires" content="Thu, 31 Dec 2025 23:59:59 GMT" />
-        
-        {/* Security Headers */}
-        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-        <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
-        <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-        
+
         {/* Additional SEO Tags */}
         <meta name="rating" content="General" />
         <meta name="distribution" content="Global" />

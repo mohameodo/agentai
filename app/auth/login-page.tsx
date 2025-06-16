@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { signInWithGoogle } from "@/lib/api"
 import { createClient } from "@/lib/supabase/client"
+import { isSupabaseEnabled } from "@/lib/supabase/config"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { HeaderGoBack } from "../components/header-go-back"
 
@@ -17,12 +19,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isSignUp, setIsSignUp] = useState(false)
+  const router = useRouter()
+
+  async function handleContinueAsGuest() {
+    // Simply redirect to the main page, the app will handle anonymous user creation
+    router.push("/")
+  }
 
   async function handleSignInWithGoogle() {
     const supabase = createClient()
 
-    if (!supabase) {
-      setError("Authentication is not configured properly. Please contact support.")
+    if (!supabase || !isSupabaseEnabled) {
+      setError("Google Sign-in is not available. Please use guest mode or contact support.")
       return
     }
 
@@ -55,8 +63,9 @@ export default function LoginPage() {
   async function handleEmailAuth() {
     const supabase = createClient()
 
-    if (!supabase) {
-      throw new Error("Supabase is not configured")
+    if (!supabase || !isSupabaseEnabled) {
+      setError("Email authentication is not available. Please use guest mode or contact support.")
+      return
     }
 
     try {
@@ -86,7 +95,7 @@ export default function LoginPage() {
         if (error) {
           setError(error.message)
         } else {
-          window.location.href = "/"
+          router.push("/")
         }
       }
     } catch (err: unknown) {
@@ -206,6 +215,16 @@ export default function LoginPage() {
               <span>
                 {isLoading ? "Connecting..." : "Continue with Google"}
               </span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="w-full text-base sm:text-base"
+              size="lg"
+              onClick={handleContinueAsGuest}
+              disabled={isLoading || isEmailLoading}
+            >
+              Continue as Guest
             </Button>
           </div>
         </div>
