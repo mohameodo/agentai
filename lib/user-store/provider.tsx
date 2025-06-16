@@ -11,7 +11,7 @@ import {
 import { createContext, useContext, useEffect, useState } from "react"
 import { onAuthStateChange } from "@/lib/firebase/auth"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
-import { getUserProfile } from "@/lib/firebase/user-api"
+import { getUserProfile, ensureUserDocumentExists } from "@/lib/firebase/user-api"
 
 type UserContextType = {
   user: UserProfile | null
@@ -41,9 +41,12 @@ export function UserProvider({
 
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
       if (firebaseUser) {
-        // User is signed in, get their profile
+        // User is signed in, ensure their document exists and get their profile
         setIsLoading(true)
         try {
+          // Ensure user document exists before fetching profile
+          await ensureUserDocumentExists(firebaseUser.uid)
+          
           const userProfile = await getUserProfile()
           setUser(userProfile)
         } catch (error) {

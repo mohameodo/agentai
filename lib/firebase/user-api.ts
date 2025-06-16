@@ -2,6 +2,8 @@ import type { UserProfile } from "@/app/types/user"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { getCurrentUser, onAuthStateChange } from "@/lib/firebase/auth"
 import { getDocument, updateDocument, createDocument } from "@/lib/firebase/firestore"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { COLLECTIONS } from "@/app/types/firebase.types"
 import type { FirebaseUser } from "@/app/types/firebase.types"
 
@@ -63,6 +65,13 @@ export async function updateUserProfile(
   }
 
   try {
+    // Ensure user document exists before updating
+    const userExists = await ensureUserDocumentExists(id)
+    if (!userExists) {
+      console.error("Failed to ensure user document exists before update")
+      return false
+    }
+
     const success = await updateDocument(COLLECTIONS.USERS, id, updates)
     return success
   } catch (error) {
@@ -77,6 +86,11 @@ export async function createUserProfile(user: any): Promise<boolean> {
   }
 
   try {
+    const db = getFirebaseFirestore()
+    if (!db) {
+      return false
+    }
+
     const userData: Partial<FirebaseUser> = {
       email: user.email,
       name: user.displayName,
@@ -90,10 +104,73 @@ export async function createUserProfile(user: any): Promise<boolean> {
       preferences: {}
     }
 
-    const result = await createDocument(COLLECTIONS.USERS, userData, user.uid)
-    return !!result
+    const userRef = doc(db, COLLECTIONS.USERS, user.uid)
+    await setDoc(userRef, {
+      ...userData,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    }, { merge: true })
+
+    return true
   } catch (error) {
     console.error("Failed to create user profile:", error)
+    return false
+  }
+}
+
+/**
+ * Ensures a user document exists in Firestore. Creates one if it doesn't exist.
+ * This should be called before any update operations.
+ */
+export async function ensureUserDocumentExists(userId: string): Promise<boolean> {
+  if (!isFirebaseEnabled) {
+    return false
+  }
+
+  try {
+    // Check if user document already exists
+    const existingUser = await getDocument<FirebaseUser>(COLLECTIONS.USERS, userId)
+    if (existingUser) {
+      return true // Document already exists
+    }
+
+    // Get current Firebase user to create the document
+    const currentUser = getCurrentUser()
+    if (!currentUser || currentUser.uid !== userId) {
+      console.error("Cannot create user document: Firebase user not available or mismatched")
+      return false
+    }
+
+    // Create user document with basic info using setDoc with merge
+    const db = getFirebaseFirestore()
+    if (!db) {
+      return false
+    }
+
+    const userData: Partial<FirebaseUser> = {
+      email: currentUser.email || "",
+      name: currentUser.displayName || "",
+      avatar_url: currentUser.photoURL || "",
+      profile_image: currentUser.photoURL || "",
+      display_name: currentUser.displayName || "",
+      anonymous: currentUser.isAnonymous || false,
+      special_agent_count: 0,
+      premium: false,
+      daily_pro_message_count: 0,
+      preferences: {}
+    }
+
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    await setDoc(userRef, {
+      ...userData,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    }, { merge: true })
+
+    console.log("Created user document for:", userId)
+    return true
+  } catch (error) {
+    console.error("Failed to ensure user document exists:", error)
     return false
   }
 }

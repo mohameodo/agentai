@@ -8,6 +8,8 @@ import {
 } from "./routes"
 import { getCurrentUser, signInWithGoogle as firebaseSignInWithGoogle, signInAsGuest } from "./firebase/auth"
 import { getDocument, updateDocument, createDocument } from "./firebase/firestore"
+import { getFirebaseFirestore } from "./firebase/client"
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { COLLECTIONS } from "@/app/types/firebase.types"
 import type { FirebaseUser } from "@/app/types/firebase.types"
 
@@ -142,7 +144,15 @@ async function createOrUpdateUserProfile(user: any) {
       preferences: {}
     }
 
-    await createDocument(COLLECTIONS.USERS, userData, user.uid)
+    // Use setDoc with merge to avoid overwriting existing data
+    const db = getFirebaseFirestore()
+    if (db) {
+      const userRef = doc(db, COLLECTIONS.USERS, user.uid)
+      await setDoc(userRef, {
+        ...userData,
+        updated_at: serverTimestamp()
+      }, { merge: true })
+    }
   } catch (error) {
     console.error("Error creating/updating user profile:", error)
   }

@@ -1,9 +1,10 @@
 import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { doc, getDoc } from "firebase/firestore"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { ensureUserDocumentExists } from "@/lib/firebase/user-api"
 
 /**
- * Validates the user's identity
+ * Validates the user's identity and ensures their document exists
  * @param userId - The ID of the user.
  * @param isAuthenticated - Whether the user is authenticated.
  * @returns Whether the user identity is valid.
@@ -20,6 +21,13 @@ export async function validateUserIdentity(
     const db = getFirebaseFirestore()
     if (!db) {
       throw new Error("Firebase Firestore not available")
+    }
+
+    // Ensure user document exists (creates it if needed)
+    const userExists = await ensureUserDocumentExists(userId)
+    if (!userExists) {
+      console.error("Failed to ensure user document exists for:", userId)
+      return false
     }
 
     // Check if user exists in Firestore (works for both authenticated and guest users)

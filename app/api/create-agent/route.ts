@@ -3,6 +3,7 @@ import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { nanoid } from "nanoid"
 import slugify from "slugify"
+import { validateUserIdentity } from "@/lib/server/api"
 
 function generateAgentSlug(title: string) {
   const base = slugify(title, { lower: true, strict: true, trim: true })
@@ -49,6 +50,17 @@ export async function POST(request: Request) {
       return new Response(
         JSON.stringify({ error: "Firebase not available in this deployment." }),
         { status: 200 }
+      )
+    }
+
+    // Validate user identity and ensure user document exists
+    const isValidUser = await validateUserIdentity(userId, true) // true = authenticated user
+    if (!isValidUser) {
+      return new Response(
+        JSON.stringify({ error: "Invalid user or user document not found" }),
+        {
+          status: 401,
+        }
       )
     }
 

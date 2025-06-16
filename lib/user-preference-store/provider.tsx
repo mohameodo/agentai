@@ -1,6 +1,8 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
+import { isFirebaseEnabled } from "@/lib/firebase/config"
+import { ensureUserDocumentExists } from "@/lib/firebase/user-api"
 
 export type LayoutType = "sidebar" | "fullscreen"
 
@@ -82,18 +84,27 @@ export function UserPreferencesProvider({
   }, [isAuthenticated])
 
   useEffect(() => {
-    if (isInitialized && isAuthenticated) {
-      try {
-        localStorage.setItem(
-          PREFERENCES_STORAGE_KEY,
-          JSON.stringify(preferences)
-        )
-        localStorage.setItem(LAYOUT_STORAGE_KEY, preferences.layout)
-      } catch (error) {
-        console.error("Failed to save user preferences:", error)
+    if (isInitialized && isAuthenticated && userId) {
+      // Ensure user document exists before saving preferences
+      const savePreferences = async () => {
+        try {
+          if (isFirebaseEnabled) {
+            await ensureUserDocumentExists(userId)
+          }
+          
+          localStorage.setItem(
+            PREFERENCES_STORAGE_KEY,
+            JSON.stringify(preferences)
+          )
+          localStorage.setItem(LAYOUT_STORAGE_KEY, preferences.layout)
+        } catch (error) {
+          console.error("Failed to save user preferences:", error)
+        }
       }
+      
+      savePreferences()
     }
-  }, [preferences, isInitialized, isAuthenticated])
+  }, [preferences, isInitialized, isAuthenticated, userId])
 
   const setLayout = (layout: LayoutType) => {
     if (isAuthenticated || layout === "fullscreen") {

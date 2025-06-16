@@ -78,24 +78,9 @@ export function ThinkingAnimation({ isVisible, modelId }: ThinkingAnimationProps
             {currentState.text}
           </p>
           
-          {/* Animated dots */}
-          <div className="flex gap-1 mt-1">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.3, 1, 0.3],
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                  ease: "easeInOut",
-                }}
-                className="w-1 h-1 bg-current rounded-full opacity-30"
-              />
-            ))}
+          {/* New animated loader */}
+          <div className="mt-2">
+            <div className="loader opacity-60"></div>
           </div>
         </motion.div>
       </motion.div>
