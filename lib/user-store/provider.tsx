@@ -13,6 +13,7 @@ import { onAuthStateChange } from "@/lib/firebase/auth"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 import { getUserProfile, ensureUserDocumentExists } from "@/lib/firebase/user-api"
 import { useAuthPersistence } from "@/lib/hooks/use-auth-persistence"
+import { broadcastUserDataChange, listenForUserDataChanges } from "@/lib/cache-management"
 
 type UserContextType = {
   user: UserProfile | null
@@ -119,6 +120,9 @@ export function UserProvider({
       const success = await updateUserProfile(user.id, updates)
       if (success) {
         setUser((prev) => (prev ? { ...prev, ...updates } : null))
+        
+        // Broadcast user data changes to other tabs
+        broadcastUserDataChange('user-profile-updated', { userId: user.id, updates })
       }
       return success
     } catch (error) {
@@ -151,6 +155,18 @@ export function UserProvider({
       unsubscribe()
     }
   }, [user?.id])
+
+  // Listen for user data changes from other tabs
+  useEffect(() => {
+    const cleanup = listenForUserDataChanges((event) => {
+      if (event.data.type === 'user-profile-updated' && event.data.data.userId === user?.id) {
+        console.log('Received user profile update from another tab')
+        refreshUser()
+      }
+    })
+
+    return cleanup
+  }, [user?.id, refreshUser])
 
   return (
     <UserContext.Provider

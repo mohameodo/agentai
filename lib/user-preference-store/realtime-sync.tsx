@@ -11,7 +11,7 @@ import { isFirebaseEnabled } from "@/lib/firebase/config"
  * Hook that provides real-time synchronization of user preferences across devices
  */
 export function useRealtimePreferenceSync() {
-  const { user } = useUser()
+  const { user, refreshUser } = useUser()
   const { updatePreference, preferences } = useUserPreferences()
   const unsubscribeRef = useRef<(() => void) | null>(null)
 
@@ -29,16 +29,18 @@ export function useRealtimePreferenceSync() {
     const unsubscribe = onSnapshot(userRef, (doc) => {
       if (doc.exists()) {
         const userData = doc.data()
+        
+        // Update local preferences with server data
         if (userData.preferences) {
-          // Update local preferences with server data
           Object.entries(userData.preferences).forEach(([key, value]) => {
             updatePreference(key, value)
           })
         }
         
-        // Sync model preference
-        if (userData.model_preference) {
-          updatePreference('model_preference', userData.model_preference)
+        // If the user's preferred model changed, refresh the user data
+        if (userData.preferred_model && userData.preferred_model !== user?.preferred_model) {
+          console.log("Preferred model changed on server, refreshing user data")
+          refreshUser()
         }
       }
     }, (error) => {
@@ -72,8 +74,27 @@ export function useRealtimePreferenceSync() {
     }
   }
 
+  // Function to sync preferred model to Firebase
+  const syncModelToFirebase = async (model: string) => {
+    if (!isFirebaseEnabled || !user?.id) return
+
+    const db = getFirebaseFirestore()
+    if (!db) return
+
+    try {
+      const userRef = doc(db, "users", user.id)
+      await updateDoc(userRef, {
+        preferred_model: model,
+        updated_at: serverTimestamp()
+      })
+    } catch (error) {
+      console.error("Error syncing preferred model to Firebase:", error)
+    }
+  }
+
   return {
     syncToFirebase,
+    syncModelToFirebase,
     isConnected: !!unsubscribeRef.current
   }
 }

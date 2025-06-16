@@ -233,7 +233,7 @@ export function Chat() {
       console.log("Syncing chat selected model with preference:", preferredModel)
       setSelectedModel(preferredModel)
     }
-  }, [currentChat?.model, user?.preferred_model, selectedModel])
+  }, [currentChat?.model, user?.preferred_model])
 
   // handle errors
   useEffect(() => {

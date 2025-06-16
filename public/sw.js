@@ -1,6 +1,6 @@
-const CACHE_NAME = 'nexiloop-v1';
-const STATIC_CACHE = 'nexiloop-static-v1';
-const DYNAMIC_CACHE = 'nexiloop-dynamic-v1';
+const CACHE_NAME = 'nexiloop-v2';
+const STATIC_CACHE = 'nexiloop-static-v2';
+const DYNAMIC_CACHE = 'nexiloop-dynamic-v2';
 
 const urlsToCache = [
   '/',
@@ -64,21 +64,31 @@ self.addEventListener('fetch', (event) => {
         })
       );
     }
-    // API requests - network first, cache fallback
+    // API requests - network first, cache fallback (exclude user-specific endpoints)
     else if (url.pathname.startsWith('/api/')) {
-      event.respondWith(
-        fetch(request)
-          .then((response) => {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
-            return response;
-          })
-          .catch(() => {
-            return caches.match(request);
-          })
-      );
+      // Don't cache user-specific API calls to ensure fresh data
+      if (url.pathname.includes('/user') || 
+          url.pathname.includes('/profile') ||
+          url.pathname.includes('/preferences') ||
+          url.pathname.includes('/auth') ||
+          url.pathname.includes('/chat')) {
+        event.respondWith(fetch(request));
+      } else {
+        // Cache non-user-specific API calls
+        event.respondWith(
+          fetch(request)
+            .then((response) => {
+              const responseClone = response.clone();
+              caches.open(DYNAMIC_CACHE).then((cache) => {
+                cache.put(request, responseClone);
+              });
+              return response;
+            })
+            .catch(() => {
+              return caches.match(request);
+            })
+        );
+      }
     }
     // Other requests - cache first, network fallback
     else {
