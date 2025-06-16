@@ -1,14 +1,20 @@
 import { isFirebaseEnabled } from "@/lib/firebase/config"
-import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { doc, deleteDoc, getDoc } from "firebase/firestore"
 
 export async function DELETE(request: Request) {
   try {
-    const { slug } = await request.json()
+    const { slug, userId } = await request.json()
 
     if (!slug) {
       return new Response(JSON.stringify({ error: "Missing agent slug" }), {
         status: 400,
+      })
+    }
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "User ID is required" }), {
+        status: 401,
       })
     }
 
@@ -19,21 +25,12 @@ export async function DELETE(request: Request) {
       )
     }
 
-    const auth = getFirebaseAuth()
     const db = getFirebaseFirestore()
 
-    if (!auth || !db) {
+    if (!db) {
       return new Response(
         JSON.stringify({ error: "Firebase services not available." }),
         { status: 500 }
-      )
-    }
-
-    const user = auth.currentUser
-    if (!user?.uid) {
-      return new Response(
-        JSON.stringify({ error: "Authentication required" }),
-        { status: 401 }
       )
     }
 
@@ -48,7 +45,7 @@ export async function DELETE(request: Request) {
     }
 
     const agentData = agentDoc.data()
-    if (agentData.creator_id !== user.uid) {
+    if (agentData.creator_id !== userId) {
       return new Response(
         JSON.stringify({
           error: "You can only delete agents that you created",

@@ -122,6 +122,7 @@ We've got docs that actually make sense (rare W):
 
 ### 🗄️ Database & Backend
 - **[Database Setup](sql/README.md)** - One script setup, it's giving efficiency
+- **[Firebase Indexes](FIREBASE_INDEXES.md)** - Required Firestore indexes for optimal performance
 - **[API Documentation](docs/API.md)** - For the tech nerds (respectfully)
 - **[Database Schema](docs/DATABASE.md)** - What's under the hood
 

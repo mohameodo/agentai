@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
+import { useUser } from "@/lib/user-store/provider"
 import { useState, useEffect } from "react"
 
 
 export function ProviderSettings() {
+  const { user } = useUser()
   const [openRouterAPIKey, setOpenRouterAPIKey] = useState("")
   const [enableOpenRouter, setEnableOpenRouter] = useState(false)
   const [openaiAPIKey, setOpenaiAPIKey] = useState("")
@@ -49,8 +50,10 @@ export function ProviderSettings() {
     }
 
     const fetchUserKeys = async () => {
+      if (!user?.id) return
+      
       try {
-        const response = await fetch("/api/user-keys")
+        const response = await fetch(`/api/user-keys?userId=${user.id}`)
         if (response.ok) {
           const data = await response.json()
           data.keys.forEach((key: { provider: string; maskedKey: string }) => {
@@ -113,6 +116,7 @@ export function ProviderSettings() {
               provider,
               apiKey: key,
               csrfToken,
+              userId: user?.id, // Pass userId to API
             }),
           })
         }

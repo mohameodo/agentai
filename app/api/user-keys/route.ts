@@ -1,31 +1,32 @@
 import { isFirebaseEnabled } from "@/lib/firebase/config"
-import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { validateCsrfToken } from "@/lib/csrf"
 import { encryptKey, maskKey, decryptKey } from "@/lib/encryption"
 import { NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     if (!isFirebaseEnabled) {
       return NextResponse.json({ error: "Firebase not available" }, { status: 500 })
     }
 
-    const auth = getFirebaseAuth()
-    const db = getFirebaseFirestore()
+    const url = new URL(request.url)
+    const userId = url.searchParams.get("userId")
 
-    if (!auth || !db) {
-      return NextResponse.json({ error: "Firebase services not available" }, { status: 500 })
+    if (!userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 401 })
     }
 
-    const user = auth.currentUser
-    if (!user?.uid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const db = getFirebaseFirestore()
+
+    if (!db) {
+      return NextResponse.json({ error: "Firebase services not available" }, { status: 500 })
     }
 
     const q = query(
       collection(db, "user_keys"),
-      where("user_id", "==", user.uid)
+      where("user_id", "==", userId)
     )
 
     try {
@@ -56,7 +57,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { provider, apiKey, csrfToken } = await request.json()
+    const { provider, apiKey, csrfToken, userId } = await request.json()
 
     if (!validateCsrfToken(csrfToken)) {
       return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 })
@@ -66,29 +67,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Provider and API key are required" }, { status: 400 })
     }
 
+    if (!userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 401 })
+    }
+
     if (!isFirebaseEnabled) {
       return NextResponse.json({ error: "Firebase not available" }, { status: 500 })
     }
 
-    const auth = getFirebaseAuth()
     const db = getFirebaseFirestore()
 
-    if (!auth || !db) {
+    if (!db) {
       return NextResponse.json({ error: "Firebase services not available" }, { status: 500 })
-    }
-
-    const user = auth.currentUser
-    if (!user?.uid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { encrypted, iv } = encryptKey(apiKey)
 
     try {
       // Use compound key: user_id + provider
-      const userKeyRef = doc(db, "user_keys", `${user.uid}_${provider}`)
+      const userKeyRef = doc(db, "user_keys", `${userId}_${provider}`)
       await setDoc(userKeyRef, {
-        user_id: user.uid,
+        user_id: userId,
         provider,
         encrypted_key: encrypted,
         iv,

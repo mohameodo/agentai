@@ -1,5 +1,5 @@
 import { isFirebaseEnabled } from "@/lib/firebase/config"
-import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { nanoid } from "nanoid"
 import slugify from "slugify"
@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       is_public = true,
       max_steps = 5,
       useNexiloopAsCreator = true, // Default to true, user can set to false
+      userId, // Accept userId from client
     } = await request.json()
 
     if (!name || !description || !systemPrompt) {
@@ -35,6 +36,15 @@ export async function POST(request: Request) {
       )
     }
 
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "User ID is required" }),
+        {
+          status: 401,
+        }
+      )
+    }
+
     if (!isFirebaseEnabled) {
       return new Response(
         JSON.stringify({ error: "Firebase not available in this deployment." }),
@@ -42,25 +52,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const auth = getFirebaseAuth()
     const db = getFirebaseFirestore()
 
-    if (!auth || !db) {
+    if (!db) {
       return new Response(
         JSON.stringify({ error: "Firebase services not available." }),
         { status: 500 }
       )
     }
 
-    const user = auth.currentUser
-    if (!user?.uid) {
-      return new Response(JSON.stringify({ error: "User not authenticated" }), {
-        status: 401,
-      })
-    }
-
-    // Always use the actual user as creator_id for database integrity
-    const creatorId = user.uid
+    // Always use the provided user ID as creator_id for database integrity
+    const creatorId = userId
     const agentSlug = generateAgentSlug(name)
 
     const agentData = {

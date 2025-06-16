@@ -2,6 +2,7 @@
 
 import { EditAgentForm } from "@/app/components/agents/dialog-create-agent/edit-agent-form"
 import type { Agent } from "@/app/types/agent"
+import { useUser } from "@/lib/user-store/provider"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -11,6 +12,7 @@ interface EditAgentPageProps {
 
 export function EditAgentPage({ agent }: EditAgentPageProps) {
   const router = useRouter()
+  const { user } = useUser()
 
   const handleSave = async (formData: {
     name: string
@@ -20,9 +22,14 @@ export function EditAgentPage({ agent }: EditAgentPageProps) {
     avatarUrl: string
     isPublic: boolean
   }) => {
+    if (!user?.id) {
+      toast.error("You must be logged in to update an agent")
+      return
+    }
+
     try {
       const response = await fetch("/api/update-agent", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -30,10 +37,11 @@ export function EditAgentPage({ agent }: EditAgentPageProps) {
           id: agent.id,
           name: formData.name,
           description: formData.description,
-          system_prompt: formData.systemPrompt,
+          systemPrompt: formData.systemPrompt,
           tools: formData.tools,
-          avatar_url: formData.avatarUrl,
-          is_public: formData.isPublic,
+          avatarUrl: formData.avatarUrl,
+          isPublic: formData.isPublic,
+          userId: user.id, // Pass userId to API
         }),
       })
 
@@ -51,14 +59,20 @@ export function EditAgentPage({ agent }: EditAgentPageProps) {
   }
 
   const handleDelete = async () => {
+    if (!user?.id) {
+      toast.error("You must be logged in to delete an agent")
+      return
+    }
+
     try {
       const response = await fetch("/api/delete-agent", {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: agent.id,
+          slug: agent.slug,
+          userId: user.id, // Pass userId to API
         }),
       })
 

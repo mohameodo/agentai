@@ -100,6 +100,14 @@ export function DialogCreateAgentTrigger({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to create an agent.",
+      })
+      return
+    }
+
     if (!validateForm()) {
       return
     }
@@ -126,6 +134,7 @@ export function DialogCreateAgentTrigger({
           is_public: formData.isPublic,
           max_steps: 5,
           useNexiloopAsCreator: formData.useNexiloopAsCreator,
+          userId: user?.id, // Pass userId to API
         }),
       })
 

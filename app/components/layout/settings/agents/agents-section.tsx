@@ -27,7 +27,7 @@ export function AgentsSection() {
       const response = await fetch(`/api/delete-agent`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId, userId: user.id }),
+        body: JSON.stringify({ slug: agentId, userId: user.id }),
       })
       
       if (response.ok) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
-import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase/client"
+import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
 
 export async function PUT(request: NextRequest) {
@@ -12,21 +12,12 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const auth = getFirebaseAuth()
     const db = getFirebaseFirestore()
     
-    if (!auth || !db) {
+    if (!db) {
       return NextResponse.json(
         { error: "Firebase services not available" },
         { status: 500 }
-      )
-    }
-
-    const user = auth.currentUser
-    if (!user?.uid) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
       )
     }
 
@@ -38,7 +29,8 @@ export async function PUT(request: NextRequest) {
       systemPrompt, 
       tools, 
       avatarUrl, 
-      isPublic 
+      isPublic,
+      userId, // Accept userId from client
     } = body
 
     // Validate required fields
@@ -46,6 +38,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
+      )
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 401 }
       )
     }
 
@@ -61,7 +60,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const agentData = agentDoc.data()
-    if (agentData.creator_id !== user.uid) {
+    if (agentData.creator_id !== userId) {
       return NextResponse.json(
         { error: "You can only edit your own agents" },
         { status: 403 }
@@ -121,31 +120,30 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    const auth = getFirebaseAuth()
     const db = getFirebaseFirestore()
     
-    if (!auth || !db) {
+    if (!db) {
       return NextResponse.json(
         { error: "Firebase services not available" },
         { status: 500 }
       )
     }
 
-    const user = auth.currentUser
-    if (!user?.uid) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      )
-    }
-
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
+    const userId = searchParams.get("userId")
 
     if (!id) {
       return NextResponse.json(
         { error: "Agent ID is required" },
         { status: 400 }
+      )
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 401 }
       )
     }
 
@@ -161,7 +159,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const agentData = agentDoc.data()
-    if (agentData.creator_id !== user.uid) {
+    if (agentData.creator_id !== userId) {
       return NextResponse.json(
         { error: "You can only delete your own agents" },
         { status: 403 }
