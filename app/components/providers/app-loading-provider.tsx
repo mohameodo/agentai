@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useUser } from "@/lib/user-store/provider"
 import { LoadingScreen } from "@/components/ui/loading-screen"
 import { usePathname } from "next/navigation"
-import { useUserPreferences } from "@/lib/user-preference-store/provider"
 
 /**
  * Provider that shows loading screen while essential data is being loaded
@@ -13,14 +12,18 @@ export function AppLoadingProvider({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(true)
   const [loadingStage, setLoadingStage] = useState("Initializing...")
   const { user, isLoading: userLoading } = useUser()
-  const { preferences } = useUserPreferences()
   const pathname = usePathname()
+
+  // Check if user disabled loading screen from localStorage
+  const isLoadingDisabled = typeof window !== 'undefined' && 
+    localStorage.getItem('user-preferences') && 
+    JSON.parse(localStorage.getItem('user-preferences') || '{}').disableLoadingScreen
 
   // Skip loading screen for chat pages OR if user disabled it
   const shouldSkipLoading = pathname?.startsWith('/chats/') || 
                            pathname?.startsWith('/c/') || 
                            pathname === '/chats' ||
-                           (preferences as any).disableLoadingScreen
+                           isLoadingDisabled
 
   useEffect(() => {
     // Skip loading screen for chat pages
