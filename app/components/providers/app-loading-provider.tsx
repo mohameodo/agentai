@@ -9,81 +9,18 @@ import { usePathname } from "next/navigation"
  * Provider that shows loading screen while essential data is being loaded
  */
 export function AppLoadingProvider({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // Disabled by default
   const [loadingStage, setLoadingStage] = useState("Initializing...")
   const { user, isLoading: userLoading } = useUser()
   const pathname = usePathname()
 
-  // Check if user disabled loading screen from localStorage
-  const isLoadingDisabled = typeof window !== 'undefined' && 
-    localStorage.getItem('user-preferences') && 
-    JSON.parse(localStorage.getItem('user-preferences') || '{}').disableLoadingScreen
-
-  // Skip loading screen for chat pages OR if user disabled it
-  const shouldSkipLoading = pathname?.startsWith('/chats/') || 
-                           pathname?.startsWith('/c/') || 
-                           pathname === '/chats' ||
-                           isLoadingDisabled
+  // Loading screen is disabled by default - never show it
+  const shouldSkipLoading = true // Always skip loading screen
 
   useEffect(() => {
-    // Skip loading screen for chat pages
-    if (shouldSkipLoading) {
-      setIsLoading(false)
-      return
-    }
-
-    // Check if loading screen has been shown before
-    const hasShownLoading = typeof window !== 'undefined' && localStorage.getItem('hasShownInitialLoading')
-    
-    if (hasShownLoading && pathname === '/') {
-      // If we've shown loading before and user is on home page, skip it
-      setIsLoading(false)
-      return
-    }
-
-    const loadApp = async () => {
-      try {
-        // Stage 1: Wait for user auth
-        setLoadingStage("Checking authentication...")
-        
-        // Wait a bit for auth to settle
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Stage 2: Load user data
-        if (user?.id) {
-          setLoadingStage("Loading your data...")
-          
-          // Wait for user-specific data to load
-          await new Promise(resolve => setTimeout(resolve, 800))
-          
-          setLoadingStage("Setting up your workspace...")
-          await new Promise(resolve => setTimeout(resolve, 600))
-        } else {
-          setLoadingStage("Preparing guest experience...")
-          await new Promise(resolve => setTimeout(resolve, 400))
-        }
-        
-        // Stage 3: Final setup
-        setLoadingStage("Almost ready...")
-        await new Promise(resolve => setTimeout(resolve, 300))
-        
-        // Mark that we've shown the loading screen
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('hasShownInitialLoading', 'true')
-        }
-        
-        setIsLoading(false)
-      } catch (error) {
-        console.error("Error during app loading:", error)
-        setIsLoading(false)
-      }
-    }
-
-    // Only start loading once user loading is complete
-    if (!userLoading) {
-      loadApp()
-    }
-  }, [user?.id, userLoading, shouldSkipLoading, pathname])
+    // Loading screen is always disabled
+    setIsLoading(false)
+  }, [])
 
   if (isLoading) {
     return <LoadingScreen />
