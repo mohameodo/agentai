@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
 import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
-import { redirect, useSearchParams } from "next/navigation"
+import { redirect, useSearchParams, usePathname } from "next/navigation"
 import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useChatHandlers } from "./use-chat-handlers"
 import { useChatUtils } from "./use-chat-utils"
@@ -64,13 +64,12 @@ function SearchParamsProvider({
 }
 
 export function Chat() {
-  // Remove props parameter since chatId comes from useChatSession
-  // const { chatId: passedChatId } = props; // Use passedChatId from props
-
-  // If useChatSession() provides other functionalities beyond chatId, it can still be used.
-  // For example: const { someOtherSessionValue, setSessionValue } = useChatSession();
-  // For this change, we ensure that 'passedChatId' is used for the chat ID.
   const { chatId } = useChatSession()
+  const pathname = usePathname()
+  
+  // Check if we're on a chat page
+  const isOnChatPage = pathname?.startsWith('/chats/') || pathname?.startsWith('/c/') || pathname === '/chats'
+  
   const {
     createNewChat,
     getChatById,
@@ -504,7 +503,7 @@ export function Chat() {
       </Suspense>
 
       <AnimatePresence initial={false} mode="popLayout">
-        {!chatId && !messages.some(msg => msg.role === 'user') ? (
+        {!chatId && !messages.some(msg => msg.role === 'user') && !isOnChatPage ? (
           <motion.div
             key="onboarding"
             className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"

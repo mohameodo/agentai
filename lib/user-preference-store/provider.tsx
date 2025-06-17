@@ -14,6 +14,7 @@ type UserPreferences = {
   defaultImageModel: string
   backgroundRemovalEnabled: boolean
   videoStreamingEnabled: boolean
+  disableLoadingScreen: boolean
 }
 
 const defaultPreferences: UserPreferences = {
@@ -24,6 +25,7 @@ const defaultPreferences: UserPreferences = {
   defaultImageModel: "@cf/lykon/dreamshaper-8-lcm",
   backgroundRemovalEnabled: false,
   videoStreamingEnabled: true,
+  disableLoadingScreen: false,
 }
 
 const PREFERENCES_STORAGE_KEY = "user-preferences"
@@ -38,6 +40,7 @@ interface UserPreferencesContextType {
   setDefaultImageModel: (model: string) => void
   setBackgroundRemovalEnabled: (enabled: boolean) => void
   setVideoStreamingEnabled: (enabled: boolean) => void
+  setDisableLoadingScreen: (disabled: boolean) => void
   updatePreference: (key: string, value: any) => void
   syncToFirebase: (key: string, value: any) => Promise<void>
 }
@@ -138,9 +141,21 @@ export function UserPreferencesProvider({
     setPreferences((prev) => ({ ...prev, videoStreamingEnabled: enabled }))
   }
 
+  const setDisableLoadingScreen = (disabled: boolean) => {
+    setPreferences((prev) => ({ ...prev, disableLoadingScreen: disabled }))
+    // Also sync to Firebase
+    if (isAuthenticated && userId) {
+      syncToFirebase('disableLoadingScreen', disabled)
+    }
+  }
+
   // Generic method to update any preference
   const updatePreference = (key: string, value: any) => {
     setPreferences((prev) => ({ ...prev, [key]: value }))
+    // Also sync to Firebase
+    if (isAuthenticated && userId) {
+      syncToFirebase(key, value)
+    }
   }
 
   // Sync preferences to Firebase
@@ -175,6 +190,7 @@ export function UserPreferencesProvider({
         setDefaultImageModel,
         setBackgroundRemovalEnabled,
         setVideoStreamingEnabled,
+        setDisableLoadingScreen,
         updatePreference,
         syncToFirebase,
       }}
