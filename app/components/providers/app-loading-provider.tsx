@@ -26,6 +26,15 @@ export function AppLoadingProvider({ children }: { children: React.ReactNode }) 
       return
     }
 
+    // Check if loading screen has been shown before
+    const hasShownLoading = typeof window !== 'undefined' && localStorage.getItem('hasShownInitialLoading')
+    
+    if (hasShownLoading && pathname === '/') {
+      // If we've shown loading before and user is on home page, skip it
+      setIsLoading(false)
+      return
+    }
+
     const loadApp = async () => {
       try {
         // Stage 1: Wait for user auth
@@ -52,6 +61,11 @@ export function AppLoadingProvider({ children }: { children: React.ReactNode }) 
         setLoadingStage("Almost ready...")
         await new Promise(resolve => setTimeout(resolve, 300))
         
+        // Mark that we've shown the loading screen
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasShownInitialLoading', 'true')
+        }
+        
         setIsLoading(false)
       } catch (error) {
         console.error("Error during app loading:", error)
@@ -63,7 +77,7 @@ export function AppLoadingProvider({ children }: { children: React.ReactNode }) 
     if (!userLoading) {
       loadApp()
     }
-  }, [user?.id, userLoading, shouldSkipLoading])
+  }, [user?.id, userLoading, shouldSkipLoading, pathname])
 
   if (isLoading) {
     return <LoadingScreen />

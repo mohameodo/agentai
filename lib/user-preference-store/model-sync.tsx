@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { useUser } from "@/lib/user-store/provider"
-import { doc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore"
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore"
 import { getFirebaseFirestore } from "@/lib/firebase/client"
 import { isFirebaseEnabled } from "@/lib/firebase/config"
 

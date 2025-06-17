@@ -3,34 +3,16 @@ import { getFirebaseFirestore } from "./client"
 import { isFirebaseEnabled } from "./config"
 
 /**
- * Saves user activity to Firestore
+ * Saves user activity to Firestore - TEMPORARILY DISABLED to reduce quota usage
  */
 export async function saveUserActivity(userId: string, activity: {
   type: string
   data: any
   timestamp?: any
 }) {
-  if (!isFirebaseEnabled || !userId) return
-
-  const db = getFirebaseFirestore()
-  if (!db) return
-
-  try {
-    const activityRef = doc(db, "user_activities", userId)
-    
-    // Use Date.now() instead of serverTimestamp() in arrayUnion
-    await setDoc(activityRef, {
-      activities: arrayUnion({
-        ...activity,
-        timestamp: activity.timestamp || Date.now()
-      }),
-      updated_at: serverTimestamp()
-    }, { merge: true })
-    
-    console.log("User activity saved:", activity.type)
-  } catch (error) {
-    console.error("Error saving user activity:", error)
-  }
+  // Temporarily disabled to reduce Firebase quota usage
+  console.log("User activity saving disabled:", activity.type)
+  return
 }
 
 /**
@@ -186,31 +168,16 @@ export async function saveUserPreferences(userId: string, preferences: any) {
 }
 
 /**
- * Saves user session data to Firestore
+ * Saves user session data to Firestore - TEMPORARILY DISABLED to reduce quota usage
  */
 export async function saveUserSession(userId: string, sessionData: {
   deviceInfo?: string
   location?: string
   userAgent?: string
 }) {
-  if (!isFirebaseEnabled || !userId) return
-
-  const db = getFirebaseFirestore()
-  if (!db) return
-
-  try {
-    const sessionRef = doc(db, "user_sessions", `${userId}_${Date.now()}`)
-    
-    await setDoc(sessionRef, {
-      userId,
-      ...sessionData,
-      timestamp: serverTimestamp()
-    })
-    
-    console.log("User session saved to Firestore")
-  } catch (error) {
-    console.error("Error saving user session:", error)
-  }
+  // Temporarily disabled to reduce Firebase quota usage
+  console.log("User session saving disabled for quota management")
+  return
 }
 
 /**
