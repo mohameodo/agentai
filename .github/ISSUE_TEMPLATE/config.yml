@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: 💬 Discussions
-    url: https://github.com/mohameodo/nexiloop-ai-template/discussions
+    url: https://github.com/mohameodo/agentai/discussions
     about: General discussions, ideas, and community support
   - name: 📚 Documentation
-    url: https://github.com/mohameodo/nexiloop-ai-template/tree/main/docs
+    url: https://github.com/mohameodo/agentai/tree/main/docs
     about: Check out the documentation for setup and usage guides
   - name: 🚀 Live Demo
-    url: https://nexiloop-ai.vercel.app
+    url: https://ai.nexiloop.com
     about: See the application in action
